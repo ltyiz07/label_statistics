@@ -31,3 +31,6 @@ docker build -t evaluate_api .
 # starting up a container
 docker run -p 5000:5000 evaluate_api
 ```
+
+SQL 데이터베이스 구조  
+![img.png](img.png)

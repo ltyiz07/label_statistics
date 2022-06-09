@@ -23,3 +23,22 @@ def get_metric(code, metrics, is_test=False):
     else:
         time.sleep(random.random() * 5 + 1)
     return {k: random.randint(0, 100) for k in metrics}
+
+
+def get_hash_from(challenge_id: str, file_content: bytes or str):
+    """
+    generate submission_id from challenge_id and file_content
+
+    Args:
+        challenge_id (str):
+        file_content (bytes or str): content of file from client
+    Returns:
+        submission_id (str): use this as key
+    """
+    hash_ = hashlib.sha1()
+    hash_.update(challenge_id.encode())
+    if type(file_content) == str:
+        hash_.update(file_content.encode())
+    elif type(file_content) == bytes:
+        hash_.update(file_content)
+    return hash_.hexdigest()[:12]

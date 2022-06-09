@@ -22,8 +22,3 @@ def client(app):
 def runner(app):
     return app.test_cli_runner()
 
-
-def test_request_example(client):
-    response = client.get("/test")
-    print(dir(response))
-    assert response.text == "test"

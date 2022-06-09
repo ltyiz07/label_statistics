@@ -1,4 +1,4 @@
-from evaluate_api.service.base import get_metric
+from evaluate_api.service.base import get_metric, get_hash_from
 
 
 def test_get_metric():
@@ -10,3 +10,9 @@ def test_get_metric():
 
     assert result_1 == result_2
     assert result_1 != result_3
+
+
+def test_base_service():
+    h_1 = get_hash_from("ehdkfjektjw2", b"this is binary content")
+    h_2 = get_hash_from("ehdkfjektjw2", "this is binary content")
+    assert h_1 == h_2

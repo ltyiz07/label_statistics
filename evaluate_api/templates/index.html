@@ -6,56 +6,162 @@
 </head>
 <style>
     div {
-        border: 1px solid;
+        border: 0 solid;
     }
+
     .container {
         width: 100%;
-        /*clear: both;*/
+        clear: both;
+        padding: 0;
+        margin: 0;
     }
+
     .left {
         float: left;
-        width: 30%;
-        /*position: relative;*/
-        height: 100px;
+        position: relative;
+        width: 20%;
+        padding: 0;
+        margin: 0;
     }
 
     .center {
-        width: 30%;
-        /*position: relative;*/
-        height: 100px;
+        position: relative;
+        width: 40%;
+        padding: 0;
         margin: 0 auto;
     }
+
     .right {
         float: right;
+        position: relative;
         width: 30%;
-        /*position: relative;*/
-        height: 100px;
+        padding: 0;
+        margin: 0;
+    }
+
+    input {
+        width: 60%;
+    }
+
+    label {
+        width: 30%;
+        display: inline-block;
+        /*margin: 20px;*/
     }
 </style>
 <body>
 <div class="container">
-        <div class="right">
-        this is right side
-        this is right side
-        this is right side
-        this is right side
-        this is right side
+    <div class="right" id="right_aside" hidden>
+        <form method="post" enctype="multipart/form-data" id="submission_form">
+            <label for="user_name"> Name </label>
+            <input type="text" name="user_name" id="user_name"/>
+
+            <label for="submission_file"> File </label>
+            <input type="file" name="submission_file" id="submission_file"/>
+
+            <br> <br>
+            <!--            <input type="button" onclick="submit_form()" value="SUBMIT"/>-->
+            <button type="submit">SUBMIT</button>
+        </form>
+        <hr>
+        <p>
+            Results
+        </p>
     </div>
     <div class="left">
-        this is left side
-        this is left side
-        this is left side
-        this is left side
+        <div>
+            CHALLENGES
+            <ol id="challenge_list" type="1">
+            </ol>
+        </div>
     </div>
     <div class="center">
-        this is center
-        this is center
-        this is center
-        this is center
-        this is center
+        <markdown id="challenge_content" style="width: 100%;"></markdown>
     </div>
 </div>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/1.9.0/showdown.min.js"></script>
 <script>
+    let challenge_data;
+
+    // page entry ajax call
+    (function add_challenge_list() {
+        $.ajax({
+            type: "get",
+            url: "/challenges/",
+            // contentType: "application/x-www-form-urlencoded; charset=utf-8", // request type
+            // contentType: "application/json; charset=utf-8", // request type
+            dataType: "JSON",        // response type
+            // data: JSON.(data),
+            success: function (data) {
+                for (const datum of data) {
+                    // margin: 10px; padding: 5px; background: lightblue
+                    let $li = $('<li>')
+                    $li.css({margin: "10px", padding: "5px", background: "lightblue"})
+                    $li.html(datum["title"] + '<br>' + datum["create_time"]);
+
+                    $li.attr("onclick", 'load_challenge("' + datum["challenge_id"] + '")');
+
+                    $('#challenge_list').append($li);
+                }
+            },
+            error: function () {
+                alert("error");
+            }
+        });
+    })();
+
+    // on click challenge title
+    const load_challenge = function (challenge_id) {
+        // load content
+        // set `challenge_data` global variable
+        $('#right_aside').attr("hidden", false);
+        $.ajax({
+            type: "get",
+            url: "/challenges/" + challenge_id,
+            // contentType: "application/x-www-form-urlencoded; charset=utf-8", // request type
+            // contentType: "application/json; charset=utf-8", // request type
+            dataType: "JSON",        // response type
+            // data: JSON.(data),
+            success: function (data) {
+                challenge_data = data;
+                $('#challenge_content').html(data["content"]);
+                convert_markdown();
+            },
+            error: function () {
+                alert("error");
+            }
+        });
+
+        // load submission Form and history
+
+    }
+
+    $('form#submission_form').submit(function (e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        $.ajax({
+            url: '/challenges/' + challenge_data["challenge_id"] + '/submissions',
+            type: "POST",
+            data: formData,
+            cache: false,
+            contentType: false,
+            processData: false,
+            success: function (data) {
+                console.log(data);
+            },
+            error: function (e) {
+                alert(e.responseJSON.error);
+            }
+        });
+    });
+
+    const convert_markdown = function () {
+        const text = $('markdown').text();
+        const converter = new showdown.Converter();
+        const html = converter.makeHtml(text);
+        $('markdown').html(html);
+    }
 </script>
 </body>
 </html>

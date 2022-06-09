@@ -1,18 +1,14 @@
 from flask import Blueprint, request
 from flask.json import jsonify
-from flasgger import swag_from
 from sqlalchemy import select
 from sqlalchemy.orm import Bundle
 
-from evaluate_api.database import db_session, Base
-# from evaluate_api.model import *
+from evaluate_api.database import db_session
 from evaluate_api.model import Challenge, Metric, Result
+from evaluate_api.service.base import get_metric, get_hash_from
 
 challenges = Blueprint("challenges", __name__, url_prefix="/challenges")
 challenges.route("/")
-"""
-함수들의 순서는 제공 받은 문서에서 정의된 순서와 동일합니다.
-"""
 
 
 @challenges.route("/", methods=["GET"])
@@ -55,22 +51,24 @@ def submit_model(challenge_id):
     """request evaluation of model to server
 
     Args:
-        body (dict | bytes): requestBody from client
         challenge_id (string): id of challenge from file meta-data
+        request (dict | bytes): requestBody from client
     Returns:
         SubmissionInfo
     """
-    # if connexion.request.is_json:
-    #     body = Object.from_dict(connexion.request.get_json())
-    print("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&44444444l&&&&&")
-    print(request.files)
-    key = list(request.files.keys())
-    file_stream = request.files.get(key[0]).stream
-    print("****************************************")
-    print(file_stream.read())
-    print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-    file_stream.close()
-    return jsonify({"method": "submit_model"})
+    user_name = request.form.get("user_name", "unknown")
+    file = request.files.get("submission_file")
+    if not file:
+        return jsonify({"error": "file not found"}), 400
+
+    # metrics = db_session.execute(select(Metric).where(Metric))
+
+    # TODO: convert this work to multi threaded
+    file_content = file.stream.readlines()
+
+
+    # result_metric = get_metric(get_hash_from(challenge_id, file_content), )
+    return jsonify({"result": "file submitted, processing..."})
 
 
 @challenges.route("/<string:challenge_id>/submissions/<string:submission_id>", methods=["GET"])
