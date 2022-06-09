@@ -1,8 +1,8 @@
 from flask.json import jsonify
-from flask import Flask, config, redirect
+from flask import Flask, config, redirect, render_template
 import os
 
-from insert_data import load_challenges_to_db
+from insert_data import load_challenges_to_db, load_results_to_db
 from evaluate_api.controller import challenges
 from flasgger import Swagger
 from evaluate_api.swagger.swagger import swagger_config
@@ -16,7 +16,15 @@ check this page: https://flask.palletsprojects.com/en/2.1.x/views/#method-views-
 
 
 def create_app(test_config=None):
-    app = Flask(__name__, instance_relative_config=True)
+    """
+    entry for flask application
+
+    Args:
+        test_config (dict): config for test if none set as default
+    Returns
+        app (Flask): generated flask application
+    """
+    app = Flask(__name__, instance_relative_config=True, template_folder=r"./templates")
 
     if test_config is None:
         app.config.from_mapping(
@@ -24,7 +32,6 @@ def create_app(test_config=None):
             SQLALCHEMY_TRACK_MODIFICATIONS=False,
             SWAGGER={
                 'title': "Bookmarks API",
-                'uiversion': 3
             }
         )
     else:
@@ -33,13 +40,14 @@ def create_app(test_config=None):
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
     load_challenges_to_db(db_session)
+    load_results_to_db(db_session)
 
     app.register_blueprint(challenges)
     swagger = Swagger(app, config=swagger_config, template_file="./swagger/swagger.yaml")
 
-    @app.get("/test")
+    @app.get("/")
     def index():
-        return "test"
+        return render_template("index.html")
 
     @app.errorhandler(404)
     def handle_404(e):

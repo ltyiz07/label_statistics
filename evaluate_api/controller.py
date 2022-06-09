@@ -2,10 +2,11 @@ from flask import Blueprint, request
 from flask.json import jsonify
 from flasgger import swag_from
 from sqlalchemy import select
+from sqlalchemy.orm import Bundle
 
 from evaluate_api.database import db_session, Base
 # from evaluate_api.model import *
-from evaluate_api.model import Metric
+from evaluate_api.model import Challenge, Metric, Result
 
 challenges = Blueprint("challenges", __name__, url_prefix="/challenges")
 challenges.route("/")
@@ -21,7 +22,15 @@ def get_challenges():
     Returns:
         Challenges
     """
-    return jsonify({"method": "get_challenges"})
+    result = db_session.execute(
+        select(Challenge)
+        .from_statement(
+            select(Bundle("Challenge", Challenge.create_time, Challenge.title, Challenge.challenge_id))
+        )
+    )
+    # print([e for e in result.scalars().all()])
+    return jsonify([e.get_dict() for e in result.scalars().all()])
+    # return jsonify({"method": "get_challenges"})
 
 
 @challenges.route("/<string:challenge_id>", methods=["GET"])
@@ -33,12 +42,16 @@ def get_challenge(challenge_id):
     Returns:
         Challenge
     """
-    print(db_session.execute(select(Metric)))
-    return jsonify({"method": "get_challenge"})
+    result = db_session.execute(
+        select(Challenge).where(Challenge.challenge_id == challenge_id)
+    ).fetchone()
+    if result:
+        result = result[0]
+    return result.get_dict()
 
 
 @challenges.route("/<string:challenge_id>/submissions", methods=["POST"])
-def submit_model(body, challenge_id):
+def submit_model(challenge_id):
     """request evaluation of model to server
 
     Args:
@@ -49,6 +62,14 @@ def submit_model(body, challenge_id):
     """
     # if connexion.request.is_json:
     #     body = Object.from_dict(connexion.request.get_json())
+    print("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&44444444l&&&&&")
+    print(request.files)
+    key = list(request.files.keys())
+    file_stream = request.files.get(key[0]).stream
+    print("****************************************")
+    print(file_stream.read())
+    print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+    file_stream.close()
     return jsonify({"method": "submit_model"})
 
 
@@ -75,5 +96,3 @@ def get_status_and_results(challenge_id):
         InlineResponse200
     """
     return jsonify({"method": "get_status_and_results"})
-
-

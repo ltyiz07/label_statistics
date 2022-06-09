@@ -4,7 +4,7 @@ from datetime import datetime
 
 from sqlalchemy import DateTime
 from sqlalchemy import select
-from evaluate_api.model import Challenge, Metric
+from evaluate_api.model import Challenge, Metric, Result
 
 
 def load_json(path: str):
@@ -37,7 +37,8 @@ def load_challenges_to_db(session, sample_dir: str = r"./sample_data_2"):
         except Exception:
             challenge.challenge_id = metadata["challange_id"]
         challenge.content = metadata["content"]
-        challenge.create_time = datetime.strptime(metadata["create_time"], "%Y-%m-%d %H:%M:%S")
+        # challenge.create_time = datetime.strptime(metadata["create_time"], "%Y-%m-%d %H:%M:%S")
+        challenge.create_time = metadata["create_time"]
         challenge.title = metadata["title"]
 
         for metric_name in metadata["metrics"]:
@@ -56,26 +57,21 @@ def load_results_to_db(session, sample_dir: str = r"./sample_data_2"):
     search_dir = os.path.join(sample_dir, "challenges")
 
     for child_dir in os.listdir(search_dir):
-        result = Result()
         path = os.path.join(search_dir, child_dir)
         result_path = os.path.join(path, "submissions.json")
         metadata_path = os.path.join(path, "metadata.json")
+
         results = load_json(result_path)
         metadata = load_json(metadata_path)
-        for submission_id, result_obj in results.items():
+
+        for submission_id, result_object in results.items():
             result = Result()
             result.user_name = "unknown"
             result.submission_id = submission_id
-            result.submission_time = datetime.strptime(result_obj["submission_time"], "%Y-%m-%d %H:%M:%S")
+            result.result_object = json.dumps(result_object)
             try:
                 result.challenge_id = metadata["challenge_id"]
             except Exception:
                 result.challenge_id = metadata["challange_id"]
-            for metric_name, metric_score in result_obj["result"].items():
-                metric = session.execute(select(Metric).where(Metric.metric_name == metric_name).fetchone()[0])
-                result.metrics.append(metric)
-                #######################################
-
-
-if __name__ == "__main__":
-    load_results_to_db("None")
+            session.add(result)
+            session.commit()

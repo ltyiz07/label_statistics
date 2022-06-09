@@ -1,7 +1,7 @@
 from sqlalchemy import select
 
 from evaluate_api.database import engine, Base, db_session
-from evaluate_api.model import Challenge, Metric
+from evaluate_api.model import Challenge, Metric, Result
 from insert_data import load_challenges_to_db, load_results_to_db
 
 
@@ -16,7 +16,7 @@ def test_load_challenge():
     assert challenges[0] is not None
 
 
-# def test_load_results():
-#     load_results_to_db(db_session)
-#     results = db_session.execute(select(Result)).fetchone()
-#     assert results[0] is not None
+def test_load_results():
+    load_results_to_db(db_session)
+    results = db_session.execute(select(Result)).fetchone()
+    assert results[0] is not None

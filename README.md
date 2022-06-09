@@ -4,16 +4,16 @@
 Python 3.9
 
 ## Usage
-To run the server, please execute the following from the root directory:
+To run the server, please execute the following from the project root directory:
 ```
-pip3 install -r requirements.txt
-python3 -m evaluation_server
+python3 -m pip3 install -r requirements.txt
+python3 -m flask run
 ```
 
 ## Test
 To run tests, please execute the following from the root directory:
 ```
-pytest -q
+python3 -m pytest
 ```
 
 [web page](http://localhost:5000/)  
