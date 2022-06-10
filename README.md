@@ -1,10 +1,22 @@
 # simple api server
 
+서버사이드 케싱에는 Redis 를 사용하였습니다.  
+Redis 를 선택한 이유는 컨커렌시 지원을 위해 브로커가 필요한데 이때 브로커로 Redis 의
+pub/sub messaging 기능에 부합했고, 추후에 캐싱된 정보들을 영속적으로 보관해야 할 일이 있을때
+snapshot 을 생성 할 수 있어서 더 유리할거라는 판단이었습니다.  
+추가적으로 데이터베이스는 영속적으로 보관해야하는 데이터들을위해 sql 데이터베이스인 sqlite 를 사용하였습니다.
+필요시 mariaDB, MySQL 등으로 교체 가능합니다.
+소프트웨어의 구조는 요구사항이 많지 않아서 최대한 간결하게 진행했습니다.
+마지막으로 비동기 처리 구현에는 python celery 라이브러리를 사용하였는데 
+직접 쓰레딩을 구현하는것보다 효율적이고 안정적으로 서비스를 운영 할 수 있기때문에
+사용했습니다.
+
 ## Requirements
 Python 3.9
 
 ## Usage
-To run the server, please execute the following from the project root directory:
+To run the server, please execute the following from the project root directory:  
+(on windows add --pool=solo)
 ```
 docker run -dp 6379:6379 redis:alpine  
 python -m pip3 install -r requirements.txt
