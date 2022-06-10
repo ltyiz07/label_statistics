@@ -20,7 +20,7 @@ services:
     container_name: worker
     working_dir: /flask_server
     entrypoint: "python"
-    command: " -m celery --app evaluate_api.service.evaluator.celler_app worker 2 -l INFO --pool=solo"
+    command: " -m celery --app evaluate_api.service.evaluator.celler_app worker -l INFO --concurrency=4"
     environment:
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
