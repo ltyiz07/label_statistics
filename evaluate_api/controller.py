@@ -1,3 +1,4 @@
+import os
 import json
 from datetime import datetime
 
@@ -15,7 +16,8 @@ from evaluate_api.service.evaluator import evaluate_submission, AsyncResult1
 
 challenges = Blueprint("challenges", __name__, url_prefix="/challenges")
 challenges.route("/")
-cache = redis.Redis(host='localhost', port=6379, db=0)
+# cache = redis.Redis(host='redis', port=6379)
+cache = redis.Redis(host=os.environ.get("REDIS_HOST", "localhost"), port=6379, db=0)
 
 
 @challenges.route("/", methods=["GET"])

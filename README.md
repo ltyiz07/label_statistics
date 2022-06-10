@@ -6,14 +6,16 @@ Python 3.9
 ## Usage
 To run the server, please execute the following from the project root directory:
 ```
-python3 -m pip3 install -r requirements.txt
-python3 -m flask run
+docker run -dp 6379:6379 redis:alpine  
+python -m pip3 install -r requirements.txt
+python -m celery -A evaluate_api.service.evaluator worker -l INFO --pool=solo &
+python -m flask run
 ```
 
 ## Test
 To run tests, please execute the following from the root directory:
 ```
-python3 -m pytest
+python -m pytest
 ```
 
 [web page](http://localhost:5000/)  

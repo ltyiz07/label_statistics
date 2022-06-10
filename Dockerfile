@@ -11,5 +11,5 @@ COPY . .
 
 #ENV PORT=5000
 #EXPOSE 5000
-#ENTRYPOINT ["python3"]
-#CMD ["-m", "flask", "run", "--host=0.0.0.0"]
+ENTRYPOINT ["python3"]
+CMD ["-m", "flask", "run", "--host=0.0.0.0"]
