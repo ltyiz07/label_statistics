@@ -66,6 +66,7 @@
         <hr>
         <p>
             Results
+        <ul id="submission_results"></ul>
         </p>
     </div>
     <div class="left">
@@ -95,13 +96,10 @@
             // data: JSON.(data),
             success: function (data) {
                 for (const datum of data) {
-                    // margin: 10px; padding: 5px; background: lightblue
                     let $li = $('<li>')
                     $li.css({margin: "10px", padding: "5px", background: "lightblue"})
                     $li.html(datum["title"] + '<br>' + datum["create_time"]);
-
                     $li.attr("onclick", 'load_challenge("' + datum["challenge_id"] + '")');
-
                     $('#challenge_list').append($li);
                 }
             },
@@ -112,17 +110,11 @@
     })();
 
     // on click challenge title
-    const load_challenge = function (challenge_id) {
-        // load content
-        // set `challenge_data` global variable
-        $('#right_aside').attr("hidden", false);
+    const ajax_challenge_content = function (challenge_id) {
         $.ajax({
             type: "get",
             url: "/challenges/" + challenge_id,
-            // contentType: "application/x-www-form-urlencoded; charset=utf-8", // request type
-            // contentType: "application/json; charset=utf-8", // request type
             dataType: "JSON",        // response type
-            // data: JSON.(data),
             success: function (data) {
                 challenge_data = data;
                 $('#challenge_content').html(data["content"]);
@@ -132,8 +124,53 @@
                 alert("error");
             }
         });
+    }
+    const ajax_submission_results = function (challenge_id) {
+        $.ajax({
+            type: "get",
+            url: "/challenges/" + challenge_id + "/submissions",
+            dataType: "JSON",        // response type
+            success: function (data) {
+                $('#submission_results').html("")
+                let should_recall = false;
+                for (const sub_id in data) {
+                    const obj = data[sub_id];
+
+                    let value = ""
+                    const $li = $('<li>');
+                    $li.css("margin-bottom", "5px");
+                    value += 'name: ' + obj["user_name"] + '<br>';
+                    value += 'time: ' + obj["submission_time"] + '<br>';
+                    if (obj["status"]) {
+                        value += 'status: ' + obj["status"] + '<br>'
+                        should_recall = true;
+                        $li.css("background-color", "salmon");
+                    } else {
+                        value += 'result: ' + JSON.stringify(obj["result"]) + '<br>';
+                        $li.css("background-color", "lightgreen");
+                    }
+
+                    $li.html(value);
+                    $('#submission_results').append($li)
+                }
+                if (should_recall) {
+                    console.log("update");
+                    setTimeout(ajax_submission_results, 0.2, challenge_id);
+                }
+            },
+            error: function () {
+                alert("error");
+            }
+        });
+    }
+    const load_challenge = function (challenge_id) {
+        // load challenge content
+        // set `challenge_data` global variable
+        $('#right_aside').attr("hidden", false);
+        ajax_challenge_content(challenge_id);
 
         // load submission Form and history
+        ajax_submission_results(challenge_id);
 
     }
 
@@ -148,7 +185,7 @@
             contentType: false,
             processData: false,
             success: function (data) {
-                console.log(data);
+                ajax_submission_results(challenge_data["challenge_id"]);
             },
             error: function (e) {
                 alert(e.responseJSON.error);

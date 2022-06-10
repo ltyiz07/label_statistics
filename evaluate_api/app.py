@@ -24,7 +24,7 @@ def create_app(test_config=None):
     Returns
         app (Flask): generated flask application
     """
-    reset_database = False
+    reset_database = True
 
     app = Flask(__name__, instance_relative_config=True, template_folder=r"./templates")
 

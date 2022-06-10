@@ -11,6 +11,7 @@ def get_metric(code, metrics, is_test=False):
     Args:
         code(str): 코드 / 실제로 eval되지는 않음
         metrics(List[str]): 반환해야 할 metric 목록
+        is_test (bool): if set as True then pass sleep
 
     Returns(Dict[str, int]): 각 metric별로 0~100사이의 난수를 가지는 dict
     """

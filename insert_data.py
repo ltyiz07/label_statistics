@@ -4,7 +4,7 @@ from datetime import datetime
 
 from sqlalchemy import DateTime
 from sqlalchemy import select
-from evaluate_api.model import Challenge, Metric, Result
+from evaluate_api.model import Challenge, Result
 
 
 def load_json(path: str):
@@ -40,15 +40,16 @@ def load_challenges_to_db(session, sample_dir: str = r"./sample_data_2"):
         # challenge.create_time = datetime.strptime(metadata["create_time"], "%Y-%m-%d %H:%M:%S")
         challenge.create_time = metadata["create_time"]
         challenge.title = metadata["title"]
+        challenge.metrics = json.dumps(metadata["metrics"])
 
-        for metric_name in metadata["metrics"]:
-            one = session.execute(select(Metric).where(Metric.metric_name == metric_name)).fetchone()
-            if one:
-                challenge.metrics.append(one[0])
-            else:
-                metric = Metric()
-                metric.metric_name = metric_name
-                challenge.metrics.append(metric)
+        # for metric_name in metadata["metrics"]:
+        #     one = session.execute(select(Metric)).where(Metric.metric_name == metric_name)).fetchone()
+        #     if one:
+        #         challenge.metrics.append(one[0])
+        #     else:
+        #         metric = Metric()
+        #         metric.metric_name = metric_name
+        #         challenge.metrics.append(metric)
         session.add(challenge)
         session.commit()
 

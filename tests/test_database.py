@@ -4,14 +4,13 @@ from sqlalchemy import select
 from sqlalchemy.orm import Bundle
 
 from evaluate_api.database import engine, Base, db_session
-from evaluate_api.model import Challenge, Metric, Result
+from evaluate_api.model import Challenge, Result
 from insert_data import load_challenges_to_db, load_results_to_db
 
-Base.metadata.drop_all(bind=engine)
-Base.metadata.create_all(bind=engine)
-
-load_challenges_to_db(db_session, "../sample_data_2")
-load_results_to_db(db_session, "../sample_data_2")
+# Base.metadata.drop_all(bind=engine)
+# Base.metadata.create_all(bind=engine)
+# load_challenges_to_db(db_session, "../sample_data_2")
+# load_results_to_db(db_session, "../sample_data_2")
 
 
 def test_get_challenges():
@@ -36,7 +35,7 @@ def test_get_challenge():
     assert result[0].title == "The Dwindling Streams"
 
 
-def test_get_restul():
+def test_get_result():
     result = db_session.execute(
         select(Result).where(Result.submission_id == r"00968776d971")
     ).fetchone()
@@ -46,7 +45,7 @@ def test_get_restul():
 
 def test_get_metric_from_challenge_id():
     result = db_session.execute(select(Challenge).where(Challenge.challenge_id == "tvupalv94okr"))
-    metrics = result.fetchone()[0].metrics
-    metrics.sort(key=lambda x: x["metric_id"])
-    sorted(metrics, key=lambda x: x["metric_id"])
+    metrics = json.loads(result.fetchone()[0].metrics)
+    for m in metrics:
+        print(m)
     print("done.")
