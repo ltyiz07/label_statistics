@@ -1,33 +1,33 @@
 version: '3.8'
 
 services:
+
   web:
-    image: python:3.9-alpine
-    working_dir: /flask_server
-    volumes:
-      - ./:/flask_server
+    build: .
     container_name: web
+    working_dir: /flask_server
     ports:
       - "5000:5000"
-    command: python3 -m flask run --host="0.0.0.0"
     environment:
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
       - REDIS_HOST=redis
     depends_on:
       - redis
+
   worker:
     build: .
     container_name: worker
-    command: celery --app evaluate_api.service.evaluator.celler_app worker -l INFO --pool=solo
-#    volumes:
-#      - .:/usr/src/app
+    working_dir: /flask_server
+    entrypoint: "python"
+    command: " -m celery --app evaluate_api.service.evaluator.celler_app worker 2 -l INFO --pool=solo"
     environment:
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
     depends_on:
       - web
       - redis
+
   redis:
     image: redis:alpine
     container_name: redis
