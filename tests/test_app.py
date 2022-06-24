@@ -1,5 +1,5 @@
 import pytest
-from evaluate_api.app import create_app
+from annotation_statistics.app import create_app
 
 
 @pytest.fixture()

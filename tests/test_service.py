@@ -1,4 +1,4 @@
-from evaluate_api.service.base import get_metric, get_hash_from
+from annotation_statistics.services.base import get_metric, get_hash_from
 
 
 def test_get_metric():

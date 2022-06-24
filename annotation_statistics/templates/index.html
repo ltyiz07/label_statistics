@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <title>My test page</title>
+</head>
+<style>
+    div {
+        border: 0 solid;
+    }
+
+    .container {
+        width: 100%;
+        clear: both;
+        padding: 0;
+        margin: 0;
+    }
+
+    .left {
+        float: left;
+        position: relative;
+        width: 20%;
+        padding: 0;
+        margin: 0;
+    }
+
+    .center {
+        position: relative;
+        width: 40%;
+        padding: 0;
+        margin: 0 auto;
+    }
+
+    .right {
+        float: right;
+        position: relative;
+        width: 30%;
+        padding: 0;
+        margin: 0;
+    }
+
+    input {
+        width: 60%;
+    }
+
+    label {
+        width: 30%;
+        display: inline-block;
+        /*margin: 20px;*/
+    }
+</style>
+<body>
+<div class="container">
+    <div class="right" id="right_aside" hidden>
+        <form method="post" enctype="multipart/form-data" id="submission_form">
+            <label for="user_name"> Name </label>
+            <input type="text" name="user_name" id="user_name"/>
+
+            <label for="submission_file"> File </label>
+            <input type="file" name="submission_file" id="submission_file"/>
+
+            <br> <br>
+            <!--            <input type="button" onclick="submit_form()" value="SUBMIT"/>-->
+            <button type="submit">SUBMIT</button>
+        </form>
+        <hr>
+        <p>
+            Results
+        <ul id="submission_results"></ul>
+        </p>
+    </div>
+    <div class="left">
+        <div>
+            CHALLENGES
+            <ol id="challenge_list" type="1">
+            </ol>
+        </div>
+    </div>
+    <div class="center">
+        <markdown id="challenge_content" style="width: 100%;"></markdown>
+    </div>
+</div>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/1.9.0/showdown.min.js"></script>
+<script>
+    let challenge_data;
+
+    // page entry ajax call
+    (function add_challenge_list() {
+        $.ajax({
+            type: "get",
+            url: "/challenges/",
+            // contentType: "application/x-www-form-urlencoded; charset=utf-8", // request type
+            // contentType: "application/json; charset=utf-8", // request type
+            dataType: "JSON",        // response type
+            // data: JSON.(data),
+            success: function (data) {
+                for (const datum of data) {
+                    let $li = $('<li>')
+                    $li.css({margin: "10px", padding: "5px", background: "lightblue"})
+                    $li.html(datum["title"] + '<br>' + datum["create_time"]);
+                    $li.attr("onclick", 'load_challenge("' + datum["challenge_id"] + '")');
+                    $('#challenge_list').append($li);
+                }
+            },
+            error: function () {
+                alert("error");
+            }
+        });
+    })();
+
+    // on click challenge title
+    const ajax_challenge_content = function (challenge_id) {
+        $.ajax({
+            type: "get",
+            url: "/challenges/" + challenge_id,
+            dataType: "JSON",        // response type
+            success: function (data) {
+                challenge_data = data;
+                $('#challenge_content').html(data["content"]);
+                convert_markdown();
+            },
+            error: function () {
+                alert("error");
+            }
+        });
+    }
+    const ajax_submission_results = function (challenge_id) {
+        $.ajax({
+            type: "get",
+            url: "/challenges/" + challenge_id + "/submissions",
+            dataType: "JSON",        // response type
+            success: function (data) {
+                $('#submission_results').html("")
+                let should_recall = false;
+                for (const sub_id in data) {
+                    const obj = data[sub_id];
+
+                    let value = ""
+                    const $li = $('<li>');
+                    $li.css("margin-bottom", "5px");
+                    value += 'name: ' + obj["user_name"] + '<br>';
+                    value += 'time: ' + obj["submission_time"] + '<br>';
+                    if (obj["status"]) {
+                        value += 'status: ' + obj["status"] + '<br>'
+                        should_recall = true;
+                        $li.css("background-color", "salmon");
+                    } else {
+                        value += 'result: ' + JSON.stringify(obj["result"]) + '<br>';
+                        $li.css("background-color", "lightgreen");
+                    }
+
+                    $li.html(value);
+                    $('#submission_results').append($li)
+                }
+                if (should_recall) {
+                    console.log("update");
+                    setTimeout(ajax_submission_results, 200, challenge_id);
+                }
+            },
+            error: function () {
+                alert("error");
+            }
+        });
+    }
+    const load_challenge = function (challenge_id) {
+        // load challenge content
+        // set `challenge_data` global variable
+        $('#right_aside').attr("hidden", false);
+        ajax_challenge_content(challenge_id);
+
+        // load submission Form and history
+        ajax_submission_results(challenge_id);
+
+    }
+
+    $('form#submission_form').submit(function (e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        $.ajax({
+            url: '/challenges/' + challenge_data["challenge_id"] + '/submissions',
+            type: "POST",
+            data: formData,
+            cache: false,
+            contentType: false,
+            processData: false,
+            success: function (data) {
+                ajax_submission_results(challenge_data["challenge_id"]);
+            },
+            error: function (e) {
+                alert(e.responseJSON.error);
+            }
+        });
+    });
+
+    const convert_markdown = function () {
+        const text = $('markdown').text();
+        const converter = new showdown.Converter();
+        const html = converter.makeHtml(text);
+        $('markdown').html(html);
+    }
+</script>
+</body>
+</html>

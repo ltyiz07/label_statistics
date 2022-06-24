@@ -13,7 +13,7 @@ To run the server, please execute the following from the project root directory:
 ```
 docker run -dp 6379:6379 redis:alpine  
 python -m pip3 install -r requirements.txt
-python -m celery -A evaluate_api.service.evaluator worker -l INFO --pool=solo &
+python -m celery -A annotation_statistics.services.evaluator worker -l INFO --pool=solo &
 python -m flask run
 ```
 [web page](http://localhost:5000/)

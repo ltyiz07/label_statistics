@@ -1,7 +1,7 @@
 from sqlalchemy import select
 
-from evaluate_api.database import engine, Base, db_session
-from evaluate_api.model import Challenge, Result
+from annotation_statistics.database import engine, Base, db_session
+from annotation_statistics.model import Challenge, Result
 from insert_data import load_challenges_to_db, load_results_to_db
 
 

@@ -1,4 +1,4 @@
-docker rm -f evaluate_api
-docker rmi -f evaluate_api
-docker build -t evaluate_api .
-docker run -d -p 5000:5000 evaluate_api
+docker rm -f annotation_statistics
+docker rmi -f annotation_statistics
+docker build -t annotation_statistics .
+docker run -d -p 5000:5000 annotation_statistics
