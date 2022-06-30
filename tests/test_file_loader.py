@@ -1,22 +1,29 @@
-from sqlalchemy import select
+import os
+import tarfile
+import json
+import xmltodict
 
-from annotation_statistics.database import engine, Base, db_session
-from annotation_statistics.model import Challenge, Result
-from insert_data import load_challenges_to_db, load_results_to_db
-
-
-def test_db_create():
-    Base.metadata.drop_all(bind=engine)
-    Base.metadata.create_all(bind=engine)
+import logging
+logger = logging.getLogger('test')
 
 
-def test_load_challenge():
-    load_challenges_to_db(db_session)
-    challenges = db_session.execute(select(Challenge)).fetchone()
-    assert challenges[0] is not None
+def test_dir_read():
+    dir_list = os.listdir(r"./sample_data/tars/")
+    logger.debug(dir_list)
 
 
-def test_load_results():
-    load_results_to_db(db_session)
-    results = db_session.execute(select(Result)).fetchone()
-    assert results[0] is not None
+def test_tar_read():
+    with tarfile.open(r"./sample_data/tars/GODTrain211111_test.tar", 'r') as tar:
+        for t in tar:
+            # tar_info = tarfile.TarInfo.fromtarfile(tar)
+            logger.debug(f"name: {t.name}")
+            logger.debug(f"size: {t.size}")
+            logger.debug(f"mtime: {t.mtime}")
+            logger.debug(f"isdir: {t.isfile()}")
+            if t.isfile():
+                file = tar.extractfile(t)
+                # logger.debug(content.read())
+                if t.name.split(".")[-1] == "xml":
+                    content = file.read()
+                    xml_dict = xmltodict.parse(content)
+                    logger.debug(xml_dict)
