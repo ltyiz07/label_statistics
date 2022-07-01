@@ -11,7 +11,7 @@ Python version >= 3.9
 To run the server, please execute the following from the project root directory:  
 (on windows add --pool=solo)
 ```
-docker run -dp 6379:6379 redis:alpine  
+docker run -dp 27017:27017 -v C:\pyth\db_statistics\database:/data/db --name mongodb mongo
 python -m pip3 install -r requirements.txt
 python -m celery -A annotation_statistics.services.evaluator worker -l INFO --pool=solo &
 python -m flask run
@@ -35,4 +35,13 @@ To run the server on a Docker container, please execute the following from the r
 ```
 # starting up a container
 docker-compose up
+```
+
+
+
+## resolve
+for mod_wsgi installation error, on powershell below  
+```
+mkdir -p C:\wamp64\bin\apache\apache2.4.51
+$env:MOD_WSGI_APACHE_ROOTDIR = "C:\wamp64\bin\apache\apache2.4.51"
 ```

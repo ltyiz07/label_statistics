@@ -4,9 +4,8 @@ from flask.json import jsonify
 from flask import Flask, render_template
 from flasgger import Swagger
 
-from annotation_statistics.controllers.main_controller import challenges
+from annotation_statistics.controllers.main_controller import datasets
 from annotation_statistics.swagger.swagger import swagger_config
-from annotation_statistics.database import db_session
 
 """
 for convert structure to api style
@@ -33,15 +32,7 @@ def create_app():
         }
     )
 
-    #### this code should moved to module under service
-    # reset_database = True
-    # if reset_database:
-    #     Base.metadata.drop_all(bind=engine)
-    #     Base.metadata.create_all(bind=engine)
-    #     load_challenges_to_db(db_session)
-    #     load_results_to_db(db_session)
-
-    app.register_blueprint(challenges)
+    app.register_blueprint(datasets)
     Swagger(app, config=swagger_config, template_file="./swagger/swagger.yaml")
 
     @app.get("/")
@@ -60,8 +51,9 @@ def create_app():
 
     @app.teardown_request
     def shutdown_session(exception=None):
-        db_session.remove()
-
+        """
+        cleanup request scope objects (ex: database session/transaction)
+        """
     return app
 
 
