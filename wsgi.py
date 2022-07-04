@@ -1,3 +1,3 @@
-from annotation_statistics import app
+from proj_stat import app
 
 application = app.create_app()

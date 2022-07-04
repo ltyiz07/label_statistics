@@ -3,12 +3,14 @@ import tarfile
 import json
 import xmltodict
 
+from proj_stat import config
+
 import logging
 logger = logging.getLogger('test')
 
 
 def test_dir_read():
-    dir_list = os.listdir(r"./sample_data/tars/")
+    dir_list = os.listdir(config.TAR_SOURCE)
     logger.debug(dir_list)
 
 

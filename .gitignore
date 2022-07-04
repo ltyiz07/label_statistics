@@ -65,3 +65,5 @@ target/
 
 #database source
 database/
+
+sample_data/
