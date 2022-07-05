@@ -16,24 +16,23 @@ def get_datasets():
     Returns:
         datasets
     """
-    return jsonify(["hello", "world"])
+    return "call get_datasets"
 
 
-@datasets.route("/<string:challenge_id>", methods=["GET"])
-def get_challenge(challenge_id):
-    """get challenge info with challenge ID
+@datasets.route("/<string:dataset_id>/images", methods=["GET"])
+def get_image_list(dataset_id):
+    """get images with imageId using ImageSets filename list
 
     Args:
-        challenge_id (str): id of challenge from files meta-data
+        dataset_id (str): will be the name of .tar file
     Returns:
         Challenge
     """
+    return f"call get_image_list with, dataset_id: {dataset_id}"
 
-    return "test"
 
-
-@datasets.route("/<string:challenge_id>/submissions", methods=["POST"])
-def submit_model(challenge_id):
+@datasets.route("/<string:dataset_id>/images/<string:image_id>", methods=["GET"])
+def get_image(dataset_id: str, image_id: str):
     """request evaluation of model to server
 
     Args:
@@ -41,11 +40,11 @@ def submit_model(challenge_id):
     Returns:
         SubmissionInfo
     """
-    return "test"
+    return f"call get_image with, dataset_id: {dataset_id}, image_id: {image_id}"
 
 
-@datasets.route("/<string:challenge_id>/submissions/<string:submission_id>", methods=["GET"])
-def get_status_or_result(challenge_id, submission_id):
+@datasets.route("/<string:dataset_id>/stats", methods=["GET"])
+def get_stats(dataset_id):
     """if evaluated returns result else returns progress
 
     Args:
@@ -54,11 +53,11 @@ def get_status_or_result(challenge_id, submission_id):
     Returns:
         SubmissionResult
     """
-    return "test"
+    return f"call get_stats with, dataset_id: {dataset_id}"
 
 
-@datasets.route("/<string:challenge_id>/submissions", methods=["GET"])
-def get_status_and_results(challenge_id):
+@datasets.route("/<string:dataset_id>/stats/<string:image_id>", methods=["GET"])
+def get_stat(dataset_id, image_id):
     """get all status on progress and results
 
     Args:
@@ -66,4 +65,4 @@ def get_status_and_results(challenge_id):
     Returns:
         response (dict): submission status and results
     """
-    return "test"
+    return f"call get_stat with, dataset_id: {dataset_id}, image_id: {image_id}"

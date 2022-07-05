@@ -1,5 +1,6 @@
 import os
 from celery import Celery
+from proj_stat.database import mongo_db
 
 
 BROKER_URL = os.environ.get("CELERY_BROKER_URL", "redis://localhost:6379/0")
@@ -11,5 +12,9 @@ celler_app.autodiscover_tasks()
 
 
 @celler_app.task(name="evaluate_submission")
-def update_mongo(challenge_id: str, submission_id: str, metrics: list):
+def load_db(challenge_id: str, submission_id: str, metrics: list):
     return None
+
+def load_db():
+    col_datasets = mongo_db.create_col_datasets()
+    

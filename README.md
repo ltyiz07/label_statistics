@@ -45,3 +45,14 @@ for mod_wsgi installation error, on powershell below
 mkdir -p C:\wamp64\bin\apache\apache2.4.51
 $env:MOD_WSGI_APACHE_ROOTDIR = "C:\wamp64\bin\apache\apache2.4.51"
 ```
+
+project hierarchy  
+    - app.py
+        controllers
+            - config.py
+            database
+            services
+                - config.py, 
+                database
+                    - config.py, 
+        templates
