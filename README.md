@@ -1,4 +1,10 @@
-# simple api server
+# simple api server  
+요구사항: 
+    1. 서버의 어노테이션에 대해 수치화된 정보 웹 으로 제공
+    2. 제공받은 수치들을 종류별로 통계화
+    3. 해당하는 이미지 제공
+    4. 이미지에 어노테이션 오버레이
+
 
 Redis as server side caching -> caching model evaluation result.  
 Redis as broker -> use pub/sub messaging queue as celery broker.  
