@@ -1,3 +1,4 @@
+import io
 import os
 from pathlib import Path
 import glob
@@ -22,20 +23,31 @@ def get_all_datasets():
         # print(c)
     return tuple(str(c) for c in datasets_col.find({}))
 
+def get_iamge_list_from_tar(dataset_id):
+    result = datasets_col.find_one({"dataset_id": dataset_id})
+    return [annot.get("image_id") for annot in result.get("annotations")]
+
 def get_image_from_tar(dataset_id, image_id):
     result = datasets_col.find_one({"dataset_id": dataset_id})
-    print("*********************************************************************&&&&&&&&&&")
     for image_info in result.get("annotations"):
         if image_info.get("image_id") == image_id:
             print(image_info.get("image_id") )
             image_path = image_info.get("image_path")
             with tarfile.open(result.get("dataset_path"), 'r') as tar:
-                return tar.extractfile(image_path).read()
+                # print(tar.extractfile(image_path).read())
+                return io.BytesIO(tar.extractfile(image_path).read())
     
     return None
 
 def get_images_from_tar():
     pass
+
+def get_stats(dataset_id):
+    stat = dict()
+    result = datasets_col.find_one({"dataset_id": dataset_id})
+    
+    stat["this is"] = "test"
+    return stat
 
 ########################################################################################
 

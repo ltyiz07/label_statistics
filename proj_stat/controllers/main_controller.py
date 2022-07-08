@@ -37,7 +37,7 @@ def get_image_list(dataset_id):
     Returns:
         Challenge
     """
-    return f"call get_image_list with, dataset_id: {dataset_id}"
+    return jsonify(service.get_iamge_list_from_tar(dataset_id))
 
 
 @datasets.route("/<string:dataset_id>/images/<string:image_id>", methods=["GET"])
@@ -63,7 +63,7 @@ def get_stats(dataset_id):
     Returns:
         SubmissionResult
     """
-    return f"call get_stats with, dataset_id: {dataset_id}"
+    return jsonify(service.get_stats(dataset_id))
 
 
 @datasets.route("/<string:dataset_id>/stats/<string:image_id>", methods=["GET"])
@@ -79,7 +79,7 @@ def get_stat(dataset_id, image_id):
 
 @datasets.route("/updateAll", methods=["GET"])
 def update_datasets():
+    start = datetime.now()
     service.init_datasets_col()
     service.update_database()
-    return "done"
-
+    return jsonify({"status": "success", "duration(microsec)": (datetime.now() - start).microseconds})
