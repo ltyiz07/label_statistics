@@ -63,7 +63,9 @@ def get_stats(dataset_id):
     Returns:
         SubmissionResult
     """
-    return jsonify(service.get_stats(dataset_id))
+    queries_set = set(request.args.get("queries", "").split(","))
+    queries_set = list(map(lambda x: x.lower(), queries_set))
+    return jsonify(service.get_stats(dataset_id, queries_set))
 
 
 @datasets.route("/<string:dataset_id>/stats/<string:image_id>", methods=["GET"])

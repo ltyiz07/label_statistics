@@ -4,6 +4,8 @@ from pathlib import Path
 import glob
 import tarfile
 from itertools import chain
+from functools import reduce
+import operator
 import xmltodict
 
 from proj_stat import config
@@ -42,11 +44,42 @@ def get_image_from_tar(dataset_id, image_id):
 def get_images_from_tar():
     pass
 
-def get_stats(dataset_id):
+def get_image_stat(dataset_id: str, image_id: str, queries: set[str]):
+    """
+    maybe have to change mongodb annotations schema as:
+        annotation: [{"image_id": "..", "image_path" ...}, {"iamge_id": "..", }]
+        -----> to dict
+        annotation: {"test_image_id_1234": {"image_path": ...}, "test_image_id_4321": {"iamge_id": "..", }}
+    """
     stat = dict()
-    result = datasets_col.find_one({"dataset_id": dataset_id})
-    
-    stat["this is"] = "test"
+
+    result = datasets_col.find_one({"dataset_id": dataset_id}).get("annotations")
+    return stat
+
+def get_stats(dataset_id: str, queries: set[str]):
+    stat = dict()
+
+    result = datasets_col.find_one({"dataset_id": dataset_id}).get("annotations")
+
+    if "images_sizes" in queries:
+        stat["images_size"] = list({(annot.get("size").get("width"), annot.get("size").get("height")) for annot in result})
+    if "images_count" in queries:
+        # number of images in datasets
+        stat["images_count"] = len(result)
+    if "images" in queries:
+        stat["images"] = list(annot.get("image_id") for annot in result)
+    if "objects_count" in queries:
+        # number of objects in datasets
+        class_count = 0
+        stat["objects_count"] = sum(len(annot.get("objects")) for annot in result)
+    if "objects" in queries:
+        objects_dict = dict()
+        for annot in result:
+            for obj in annot.get("objects"):
+                obj_name = obj.get("name")
+                objects_dict[obj_name] = objects_dict.setdefault(obj_name, 0) + 1
+        stat["objects"] = objects_dict
+
     return stat
 
 ########################################################################################
