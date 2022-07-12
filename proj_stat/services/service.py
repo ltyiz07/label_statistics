@@ -79,10 +79,18 @@ def get_stats(dataset_id: str, queries: set[str]):
                 obj_name = obj.get("name")
                 objects_dict[obj_name] = objects_dict.setdefault(obj_name, 0) + 1
         stat["objects"] = objects_dict
+    if "objects_sizes_avg" in queries:
+        stat["objects_sizes_avg"] = \
+            sum(_get_object_size(obj.get("bndbox")) for annot in result for obj in annot.get("objects")) \
+                / sum(len(annot.get("objects")) for annot in result)
 
     return stat
 
 ########################################################################################
+def _get_object_size(bnd_box: map):
+    bnd_box = {k: float(v) for k, v in bnd_box.items()}
+    return (bnd_box.get("xmax") - bnd_box.get("xmin")) * (bnd_box.get("ymax") - bnd_box.get("ymin"))
+
 
 def update_database():
     datasets_col = mongo_db.create_datasets_col()
