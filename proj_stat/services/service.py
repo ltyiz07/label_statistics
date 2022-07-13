@@ -22,7 +22,7 @@ def get_all_datasets_count():
 
 def get_all_datasets():
     cursor = datasets_col.find({}, {"_id": False})
-    return dict(dataset_ids = [c["dataset_id"] for c in cursor])
+    return [c["dataset_id"] for c in cursor]
     # for c in cursor:
         # ids.append(c.get("dataset_id"))
     # return {"dataset_ids": ids}

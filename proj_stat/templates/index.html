@@ -77,7 +77,7 @@
         </div>
     </div>
     <div class="center">
-        <markdown id="challenge_content" style="width: 100%;"></markdown>
+        <markdown id="images_list" style="width: 100%;"></markdown>
     </div>
 </div>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
@@ -95,7 +95,7 @@
             dataType: "JSON",        // response type
             // data: JSON.(data),
             success: function (data) {
-                for (const dataset_id of data["dataset_ids"]) {
+                for (const dataset_id of data.result) {
                     let $li = $('<li>')
                     $li.css({margin: "10px", padding: "5px", background: "lightblue"})
                     $li.html(dataset_id + '<br>');
@@ -110,17 +110,36 @@
     })();
 
     // on click challenge title
-    const ajax_challenge_content = function (challenge_id) {
+    const ajax_images_list = function (challenge_id) {
         $.ajax({
             type: "get",
             url: "/datasets/" + challenge_id + "/images",
             dataType: "JSON",        // response type
             success: function (data) {
-                    $('#challenge_content').html("");
+                $('#images_list').html("");
                 challenge_data = data;
-                for (const image_id of data) {
-                    $('#challenge_content').append(image_id);
-                    $('#challenge_content').append("  \n");
+                for (const image_id of data.result) {
+                    $('#images_list').append(image_id);
+                    $('#images_list').append("  \n");
+                }
+                convert_markdown();
+            },
+            error: function () {
+                alert("error");
+            }
+        });
+    }
+    const ajax_stats = function (challenge_id) {
+        $.ajax({
+            type: "get",
+            url: "/datasets/" + challenge_id + "/stats?images",
+            dataType: "JSON",        // response type
+            success: function (data) {
+                // $('#images_list').html("");
+                challenge_data = data;
+                for (const image_id of data.result) {
+                    $('#images_list').append(image_id);
+                    $('#images_list').append("  \n");
                 }
                 convert_markdown();
             },
@@ -171,7 +190,7 @@
         // load challenge content
         // set `challenge_data` global variable
         $('#right_aside').attr("hidden", false);
-        ajax_challenge_content(dataset_id);
+        ajax_images_list(dataset_id);
 
         // load submission Form and history
         // ajax_submission_results(challenge_id);

@@ -26,7 +26,7 @@ def get_datasets():
     if count_param == "all":
         return jsonify(service.get_all_datasets_count())
     
-    return jsonify(service.get_all_datasets())
+    return jsonify({"result": service.get_all_datasets()})
 
 
 @datasets.route("/<string:dataset_id>/images", methods=["GET"])
@@ -38,7 +38,7 @@ def get_image_list(dataset_id):
     Returns:
         Challenge
     """
-    return jsonify(service.get_iamge_list_from_tar(dataset_id))
+    return jsonify({"result": service.get_iamge_list_from_tar(dataset_id)})
 
 
 @datasets.route("/<string:dataset_id>/images/<string:image_id>", methods=["GET"])
@@ -65,7 +65,7 @@ def get_stats(dataset_id):
         SubmissionResult
     """
     queries_set = set(request.args.get("queries", "").split(","))
-    queries_set = list(map(lambda x: x.lower(), queries_set))
+    queries_set = list(map(lambda x: x.lower().strip(), queries_set))
     return jsonify(service.get_stats(dataset_id, queries_set))
 
 
