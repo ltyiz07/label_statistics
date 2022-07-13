@@ -10,6 +10,7 @@ import xmltodict
 
 from proj_stat import config
 from proj_stat.database import mongo_db
+from bson import json_util
 
 
 datasets_col = mongo_db.get_datasets_col()
@@ -20,10 +21,11 @@ def get_all_datasets_count():
     return datasets_col.count_documents({})
 
 def get_all_datasets():
-    cursor = datasets_col.find({})
+    cursor = datasets_col.find({}, {"_id": False})
+    return dict(dataset_ids = [c["dataset_id"] for c in cursor])
     # for c in cursor:
-        # print(c)
-    return tuple(str(c) for c in datasets_col.find({}))
+        # ids.append(c.get("dataset_id"))
+    # return {"dataset_ids": ids}
 
 def get_iamge_list_from_tar(dataset_id):
     result = datasets_col.find_one({"dataset_id": dataset_id})

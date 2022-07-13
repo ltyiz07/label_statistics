@@ -72,7 +72,7 @@
     <div class="left">
         <div>
             CHALLENGES
-            <ol id="challenge_list" type="1">
+            <ol id="dataset_id_list" type="1">
             </ol>
         </div>
     </div>
@@ -86,21 +86,21 @@
     let challenge_data;
 
     // page entry ajax call
-    (function add_challenge_list() {
+    (function add_dataset_list() {
         $.ajax({
             type: "get",
-            url: "/challenges/",
+            url: "/datasets/",
             // contentType: "application/x-www-form-urlencoded; charset=utf-8", // request type
             // contentType: "application/json; charset=utf-8", // request type
             dataType: "JSON",        // response type
             // data: JSON.(data),
             success: function (data) {
-                for (const datum of data) {
+                for (const dataset_id of data["dataset_ids"]) {
                     let $li = $('<li>')
                     $li.css({margin: "10px", padding: "5px", background: "lightblue"})
-                    $li.html(datum["title"] + '<br>' + datum["create_time"]);
-                    $li.attr("onclick", 'load_challenge("' + datum["challenge_id"] + '")');
-                    $('#challenge_list').append($li);
+                    $li.html(dataset_id + '<br>');
+                    $li.on("click", ()=>{load_dataset(dataset_id)});
+                    $('#dataset_id_list').append($li);
                 }
             },
             error: function () {
@@ -113,11 +113,15 @@
     const ajax_challenge_content = function (challenge_id) {
         $.ajax({
             type: "get",
-            url: "/challenges/" + challenge_id,
+            url: "/datasets/" + challenge_id + "/images",
             dataType: "JSON",        // response type
             success: function (data) {
+                    $('#challenge_content').html("");
                 challenge_data = data;
-                $('#challenge_content').html(data["content"]);
+                for (const image_id of data) {
+                    $('#challenge_content').append(image_id);
+                    $('#challenge_content').append("  \n");
+                }
                 convert_markdown();
             },
             error: function () {
@@ -163,15 +167,16 @@
             }
         });
     }
-    const load_challenge = function (challenge_id) {
+    const load_dataset = function (dataset_id) {
         // load challenge content
         // set `challenge_data` global variable
         $('#right_aside').attr("hidden", false);
-        ajax_challenge_content(challenge_id);
+        ajax_challenge_content(dataset_id);
 
         // load submission Form and history
-        ajax_submission_results(challenge_id);
+        // ajax_submission_results(challenge_id);
 
+        console.log("dataset_id: ", dataset_id);
     }
 
     $('form#submission_form').submit(function (e) {

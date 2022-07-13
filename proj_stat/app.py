@@ -35,7 +35,7 @@ def create_app():
     app.register_blueprint(datasets)
     Swagger(app, config=swagger_config, template_file="./swagger/swagger.yaml")
 
-    @app.get("/")
+    @app.get("/index")
     def index():
         return render_template("index.html")
 
