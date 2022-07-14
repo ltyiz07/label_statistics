@@ -3,6 +3,7 @@ import sys
 from pydoc import cli
 from pymongo import MongoClient
 from proj_stat.database import mongo_db
+from proj_stat.database.collection_cls import Dataset, Annotation
 
 import logging
 log = logging.getLogger('test')
@@ -38,58 +39,68 @@ def test_insert():
 
 
 def test_col_datasets_validation():
-    mongo_db.create_datasets_col()
-    col_datasets = mongo_db.get_datasets_col()
+    mongo_db.create_collections_with_schemas()
+    datasets_col = mongo_db.get_datasets_col()
+    annotations_col = mongo_db.get_annotations_col()
     try:
-        col_datasets.insert_one({"x": 1})
+        datasets_col.insert_one({"x": 1})
         log.debug("NOT good; the insert above should have failed.")
     except:
         log.debug(f"OK. Expected exception.")
 
-    okdoc = {
-        "dataset_path": "god_filename.tar",
-        "dataset_id": "god_filename",
+    sample_dataset =  Dataset({
+        "dataset_id": "test_filename",
+        "dataset_path": "test_filename.tar",
         "dataset_hash": "21324114",
-        "annotations":
-        [
+        "annotations": ["21231234", "21231236"],
+    })
+    sample_annotation_1 = Annotation({
+        "image_id": "21231234",
+        "dataset_id": "test_filename",
+        "image_path": "Image/21231234.jpg",
+        "size": {"width": 21, "height": 31},
+        "objects": [
             {
-                "image_path": "Image/21231234.jpg",
-                "image_id": "21231234",
-                "size": {"width": 21, "height": 31},
-                "objects": [
-                    {
-                        "name": "bmw_car",
-                        "bndbox": {
-                            "xmin": "44.21", "ymin": "21.00",
-                            "xmax": "24.00", "ymax": "21.00"
-                            }
-                    },
-                    {
-                        "name": "random_car",
-                        "bndbox": {
-                            "xmin": "44.21", "ymin": "21.00",
-                            "xmax": "24.00", "ymax": "21.00"
-                            }
-                    }
-                ]
+                "name": "bmw_car",
+                "bndbox": {
+                    "xmin": "45.21", "ymin": "22.00",
+                    "xmax": "24.00", "ymax": "21.00"
+                }
             },
             {
-                "image_path": "Image/21231235.jpg",
-                "image_id": "21231236",
-                "size": {"width": 22, "height": 32},
-                "objects": [
-                    {"name": "bmw_car", "bndbox": {
-                        "xmin": "45.21", "ymin": "22.00",
-                        "xmax": "24.00", "ymax": "21.00"
-                        }},
-                    {"name": "random_car", "bndbox": {
-                        "xmin": "45.21", "ymin": "22.00",
-                        "xmax": "24.00", "ymax": "21.00"
-                        }}
-                ]
+                "name": "random_car",
+                "bndbox": {
+                "xmin": "45.21", "ymin": "22.00",
+                "xmax": "24.00", "ymax": "21.00"
+                }
             }
-        ],
-    }
-    col_datasets.insert_one(okdoc)
+        ]
+    })
+    sample_annotation_2 = Annotation({
+        "image_id": "21231236",
+        "image_path": "Image/21231235.jpg",
+        "dataset_id": "test_filename",
+        "size": {"width": 22, "height": 32},
+        "objects": [
+            {
+                "name": "bmw_car",
+                "bndbox": {
+                    "xmin": "45.21", "ymin": "22.00",
+                    "xmax": "24.00", "ymax": "21.00"
+                }
+            },
+            {
+                "name": "random_car",
+                "bndbox": {
+                "xmin": "45.21", "ymin": "22.00",
+                "xmax": "24.00", "ymax": "21.00"
+                }
+            }
+        ]
+    })
+    datasets_col.insert_one(sample_dataset)
+    # annotations_col.insert_many([sample_annotation_1, sample_annotation_2])
+    annotations_col.insert_one(sample_annotation_1)
+    annotations_col.insert_one(sample_annotation_2)
     log.debug("All good.")
 

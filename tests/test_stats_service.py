@@ -1,4 +1,4 @@
-from proj_stat.services.service import get_stats
+from proj_stat.services.init_service import get_stats
 
 import logging
 
