@@ -16,22 +16,22 @@ from bson import json_util
 datasets_col = mongo_db.get_datasets_col()
 
 
-def get_all_datasets_count():
+def get_all_datasets_count() -> int:
     # len(datasets_col.find({}))
     return datasets_col.count_documents({})
 
-def get_all_datasets():
+def get_all_datasets() -> list[str]:
     cursor = datasets_col.find({}, {"_id": False})
     return [c["dataset_id"] for c in cursor]
     # for c in cursor:
         # ids.append(c.get("dataset_id"))
     # return {"dataset_ids": ids}
 
-def get_iamge_list_from_tar(dataset_id):
+def get_iamge_list_from_tar(dataset_id) -> list[str]:
     result = datasets_col.find_one({"dataset_id": dataset_id})
     return [annot.get("image_id") for annot in result.get("annotations")]
 
-def get_image_from_tar(dataset_id, image_id):
+def get_image_from_tar(dataset_id, image_id) -> io.BytesIO:
     result = datasets_col.find_one({"dataset_id": dataset_id})
     for image_info in result.get("annotations"):
         if image_info.get("image_id") == image_id:
@@ -58,7 +58,7 @@ def get_image_stat(dataset_id: str, image_id: str, queries: set[str]):
     result = datasets_col.find_one({"dataset_id": dataset_id}).get("annotations")
     return stat
 
-def get_stats(dataset_id: str, queries: set[str]):
+def get_stats(dataset_id: str, queries: set[str]) -> dict:
     stat = dict()
 
     result = datasets_col.find_one({"dataset_id": dataset_id}).get("annotations")
@@ -74,6 +74,11 @@ def get_stats(dataset_id: str, queries: set[str]):
         # number of objects in datasets
         class_count = 0
         stat["objects_count"] = sum(len(annot.get("objects")) for annot in result)
+    if "objects_unique_count" in queries:
+        stat["objects_unique_count"] = len(set(obj.get("name") for annot in result for obj in annot.get("objects")))
+    if "objects_unique" in queries:
+        stat["objects_unique"] = list(set(obj.get("name") for annot in result for obj in annot.get("objects")))
+        # pass
     if "objects" in queries:
         objects_dict = dict()
         for annot in result:
@@ -87,6 +92,44 @@ def get_stats(dataset_id: str, queries: set[str]):
                 / sum(len(annot.get("objects")) for annot in result)
 
     return stat
+
+def get_stat(dataset_id: str, image_id: str, queries: set[str]) -> dict:
+    stat = dict()
+
+    for annot in datasets_col.find_one({"dataset_id": dataset_id}).get("annotations"):
+        if annot.get("image_id") == image_id:
+            result = annot
+    print(result)
+
+    if "images_sizes" in queries:
+        stat["images_size"] = list((result.get("size").get("width"), result.get("size").get("height")))
+    if "images_count" in queries:
+        # number of images in datasets
+        stat["images_count"] = 1
+    if "images" in queries:
+        stat["images"] = [result.get("image_id")]
+    if "objects_count" in queries:
+        # number of objects in datasets
+        class_count = 0
+        stat["objects_count"] = len(result.get("objects"))
+    if "objects_unique_count" in queries:
+        stat["objects_unique_count"] = len(set(obj.get("name") for obj in result.get("objects")))
+    if "objects_unique" in queries:
+        stat["objects_unique"] = list(set(obj.get("name") for obj in result.get("objects")))
+        # pass
+    if "objects" in queries:
+        objects_dict = dict()
+        for obj in result.get("objects"):
+            obj_name = obj.get("name")
+            objects_dict[obj_name] = objects_dict.setdefault(obj_name, 0) + 1
+        stat["objects"] = objects_dict
+    if "objects_sizes_avg" in queries:
+        stat["objects_sizes_avg"] = \
+            sum(_get_object_size(obj.get("bndbox")) for obj in annot.get("objects")) \
+                / len(result.get("objects"))
+
+    return stat
+
 
 ########################################################################################
 def _get_object_size(bnd_box: map):

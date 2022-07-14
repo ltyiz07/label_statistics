@@ -24,7 +24,7 @@ def get_datasets():
     """
     count_param = request.args.get("count", default="", type=str)
     if count_param == "all":
-        return jsonify(service.get_all_datasets_count())
+        return jsonify({"result": service.get_all_datasets_count()})
     
     return jsonify({"result": service.get_all_datasets()})
 
@@ -66,7 +66,7 @@ def get_stats(dataset_id):
     """
     queries_set = set(request.args.get("queries", "").split(","))
     queries_set = list(map(lambda x: x.lower().strip(), queries_set))
-    return jsonify(service.get_stats(dataset_id, queries_set))
+    return jsonify({"result": service.get_stats(dataset_id, queries_set)})
 
 
 @datasets.route("/<string:dataset_id>/stats/<string:image_id>", methods=["GET"])
@@ -78,10 +78,14 @@ def get_stat(dataset_id, image_id):
     Returns:
         response (dict): submission status and results
     """
-    return f"call get_stat with, dataset_id: {dataset_id}, image_id: {image_id}"
+    # return f"call get_stat with, dataset_id: {dataset_id}, image_id: {image_id}"
+    queries_set = set(request.args.get("queries", "").split(","))
+    queries_set = list(map(lambda x: x.lower().strip(), queries_set))
+    return jsonify({"result": service.get_stat(dataset_id, image_id, queries_set)})
 
 @datasets.route("/updateAll", methods=["GET"])
 def update_datasets():
+    ################ CAUTION: Have to update this method #######################
     start = datetime.now()
     service.init_datasets_col()
     service.update_database()
