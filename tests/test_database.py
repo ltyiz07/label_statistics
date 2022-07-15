@@ -1,9 +1,11 @@
 import os
+from random import sample
 import sys
 from pydoc import cli
 from pymongo import MongoClient
 from proj_stat.database import mongo_db
 from proj_stat.database.collection_cls import Dataset, Annotation
+from proj_stat.services import init_service
 
 import logging
 log = logging.getLogger('test')
@@ -104,3 +106,12 @@ def test_col_datasets_validation():
     annotations_col.insert_one(sample_annotation_2)
     log.debug("All good.")
 
+def test_get_as_py_class():
+    init_service.update_database()
+
+    annotations_col = mongo_db.get_annotations_col()
+    datasets_col = mongo_db.get_datasets_col()
+
+    cursor = datasets_col.find({})
+    sample_dataset_id = cursor[0].get("dataset_id")
+    dataset = Dataset(datasets_col.find_one({"dataset_id": sample_dataset_id}))

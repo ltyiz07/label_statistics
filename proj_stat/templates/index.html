@@ -17,6 +17,7 @@
     }
 
     .left {
+        display: flex;
         float: left;
         position: relative;
         width: 20%;
@@ -25,63 +26,47 @@
     }
 
     .center {
-        position: relative;
-        width: 40%;
+        display: flex;
+        position: rcelative;
+        width: 25%;
         padding: 0;
         margin: 0 auto;
     }
 
     .right {
+        display: flex;
         float: right;
         position: relative;
-        width: 30%;
+        width: 50%;
         padding: 0;
         margin: 0;
     }
 
-    input {
-        width: 60%;
-    }
-
-    label {
-        width: 30%;
-        display: inline-block;
-        /*margin: 20px;*/
-    }
 </style>
 <body>
 <div class="container">
     <div class="right" id="right_aside" hidden>
-        <form method="post" enctype="multipart/form-data" id="submission_form">
-            <label for="user_name"> Name </label>
-            <input type="text" name="user_name" id="user_name"/>
-
-            <label for="submission_file"> File </label>
-            <input type="file" name="submission_file" id="submission_file"/>
-
-            <br> <br>
-            <!--            <input type="button" onclick="submit_form()" value="SUBMIT"/>-->
-            <button type="submit">SUBMIT</button>
-        </form>
-        <hr>
-        <p>
-            Results
-        <ul id="submission_results"></ul>
-        </p>
+        Stats
+        <div id="piechart" style="width: 900px; height: 500px;"></div>
+        <canvas id="image_canvas" style="width: 900px; height: 500px;"></canvas>
+        <div id="image_div"></div>
     </div>
     <div class="left">
         <div>
-            CHALLENGES
+            Datasets list
             <ol id="dataset_id_list" type="1">
             </ol>
         </div>
     </div>
     <div class="center">
-        <markdown id="images_list" style="width: 100%;"></markdown>
+        Images list
+        <ol id="images_list" style="width: 100%;"></ol>
     </div>
 </div>
+
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/1.9.0/showdown.min.js"></script>
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+
 <script>
     let challenge_data;
 
@@ -98,8 +83,8 @@
                 for (const dataset_id of data.result) {
                     let $li = $('<li>')
                     $li.css({margin: "10px", padding: "5px", background: "lightblue"})
-                    $li.html(dataset_id + '<br>');
-                    $li.on("click", ()=>{load_dataset(dataset_id)});
+                    $li.text(dataset_id);
+                    $li.on("click", ()=>{ load_dataset(dataset_id, $li); });
                     $('#dataset_id_list').append($li);
                 }
             },
@@ -109,39 +94,77 @@
         });
     })();
 
-    // on click challenge title
-    const ajax_images_list = function (challenge_id) {
+    const load_dataset = function (dataset_id, elem) {
+        $('#dataset_id_list').children().css("background-color", "lightblue");
+        $('#right_aside').attr("hidden", false);
+        ajax_images_list(dataset_id, elem);
+        ajax_stats(dataset_id);
+    }
+
+    const ajax_images_list = function (dataset_id, elem) {
         $.ajax({
             type: "get",
-            url: "/datasets/" + challenge_id + "/images",
+            url: "/datasets/" + dataset_id + "/images",
             dataType: "JSON",        // response type
             success: function (data) {
                 $('#images_list').html("");
                 challenge_data = data;
+                elem.css({background: "MediumSlateBlue"});
                 for (const image_id of data.result) {
-                    $('#images_list').append(image_id);
-                    $('#images_list').append("  \n");
+                    let $li = $('<li>');
+                    $li.css({margin: "10px", padding: "5px", background: "orange"});
+                    $li.text(image_id);
+                    $li.on("click", () => {load_image(dataset_id, image_id)});
+                    $('#images_list').append($li);
                 }
-                convert_markdown();
             },
             error: function () {
                 alert("error");
             }
         });
     }
-    const ajax_stats = function (challenge_id) {
+    const load_image = function(dataset_id, image_id) {
+        $('#image_div').html("");
+        let $img = $('img');
+        const url = "/datasets/" + dataset_id + "/images/" + image_id;
+        $img.attr("src", url);
+        $('#image_div').append($img);
+        // var ctx = document.getElementById('image_canvas').getContext("2d");
+        // ctx.drawImage( $img , 0, 0, 200, 200);
+        //  $.ajax({
+        //     type: "get",
+        //     url: "/datasets/" + dataset_id + "/images/" + image_id,
+        //     dataType: "image/jpg",        // response type
+        //     success: function (image) {
+        //         var ctx = document.getElementById('image_canvas').getContext("2d");
+        //         ctx.drawImage( image , 0, 0, 200, 200);
+        //     },
+        //     error: function (error) {
+        //         alert("error");
+        //         console.log(error);
+        //     }
+        // });       
+    }
+    const ajax_stats = function (dataset_id) {
+        google.charts.load('current', {'packages':['corechart']});
+        // google.charts.setOnLoadCallback(drawChart);
         $.ajax({
             type: "get",
-            url: "/datasets/" + challenge_id + "/stats?images",
+            url: "/datasets/" + dataset_id + "/stats?queries=images%2Cobjects",
             dataType: "JSON",        // response type
             success: function (data) {
-                // $('#images_list').html("");
-                challenge_data = data;
-                for (const image_id of data.result) {
-                    $('#images_list').append(image_id);
-                    $('#images_list').append("  \n");
+                console.log(data.result.objects);
+                const data_list = [["object", "count"]]
+
+                for (const [k, v] of Object.entries(data.result.objects)) {
+                    data_list.push([k, v]);
                 }
-                convert_markdown();
+                const graph_data = google.visualization.arrayToDataTable(data_list);
+                const options = {
+                    title: 'My Daily Activities'
+                };
+                var chart = new google.visualization.PieChart(document.getElementById('piechart'));
+                chart.draw(graph_data, options);
             },
             error: function () {
                 alert("error");
@@ -186,17 +209,6 @@
             }
         });
     }
-    const load_dataset = function (dataset_id) {
-        // load challenge content
-        // set `challenge_data` global variable
-        $('#right_aside').attr("hidden", false);
-        ajax_images_list(dataset_id);
-
-        // load submission Form and history
-        // ajax_submission_results(challenge_id);
-
-        console.log("dataset_id: ", dataset_id);
-    }
 
     $('form#submission_form').submit(function (e) {
         e.preventDefault();
@@ -217,12 +229,6 @@
         });
     });
 
-    const convert_markdown = function () {
-        const text = $('markdown').text();
-        const converter = new showdown.Converter();
-        const html = converter.makeHtml(text);
-        $('markdown').html(html);
-    }
 </script>
 </body>
 </html>
