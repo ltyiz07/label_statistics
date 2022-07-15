@@ -9,7 +9,7 @@ from flask import request
 from flask import send_file
 from flask.json import jsonify
 
-from proj_stat.services import init_service
+from proj_stat.services import init_service, main_service
 
 datasets = Blueprint("datasets", __name__, url_prefix="/datasets")
 datasets.route("/")
@@ -24,9 +24,9 @@ def get_datasets():
     """
     count_param = request.args.get("count", default="", type=str)
     if count_param == "all":
-        return jsonify({"result": init_service.get_all_datasets_count()})
+        return jsonify({"result": main_service.get_all_datasets_count()})
     
-    return jsonify({"result": init_service.get_all_datasets()})
+    return jsonify({"result": main_service.get_all_datasets()})
 
 
 @datasets.route("/<string:dataset_id>/images", methods=["GET"])
@@ -38,7 +38,7 @@ def get_image_list(dataset_id):
     Returns:
         Challenge
     """
-    return jsonify({"result": init_service.get_iamge_list_from_tar(dataset_id)})
+    return jsonify({"result": main_service.get_image_list_from_tar(dataset_id)})
 
 
 @datasets.route("/<string:dataset_id>/images/<string:image_id>", methods=["GET"])
@@ -50,7 +50,7 @@ def get_image(dataset_id: str, image_id: str):
     Returns:
         SubmissionInfo
     """
-    return send_file(init_service.get_image_from_tar(dataset_id, image_id), mimetype="image/jpeg")
+    return send_file(main_service.get_image_from_tar(dataset_id, image_id), mimetype="image/jpeg")
     # return f"call get_image with, dataset_id: {dataset_id}, image_id: {image_id}"
 
 
@@ -66,7 +66,7 @@ def get_stats(dataset_id):
     """
     queries_set = set(request.args.get("queries", "").split(","))
     queries_set = list(map(lambda x: x.lower().strip(), queries_set))
-    return jsonify({"result": init_service.get_stats(dataset_id, queries_set)})
+    return jsonify({"result": main_service.get_stats(dataset_id, queries_set)})
 
 
 @datasets.route("/<string:dataset_id>/stats/<string:image_id>", methods=["GET"])
@@ -81,12 +81,11 @@ def get_stat(dataset_id, image_id):
     # return f"call get_stat with, dataset_id: {dataset_id}, image_id: {image_id}"
     queries_set = set(request.args.get("queries", "").split(","))
     queries_set = list(map(lambda x: x.lower().strip(), queries_set))
-    return jsonify({"result": init_service.get_stat(dataset_id, image_id, queries_set)})
+    return jsonify({"result": main_service.get_stat(dataset_id, image_id, queries_set)})
 
 @datasets.route("/updateAll", methods=["GET"])
 def update_datasets():
     ################ CAUTION: Have to update this method #######################
     start = datetime.now()
-    init_service.init_datasets_col()
     init_service.update_database()
     return jsonify({"status": "success", "duration(microsec)": (datetime.now() - start).microseconds})

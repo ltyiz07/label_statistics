@@ -14,6 +14,7 @@ from bson import json_util
 
 
 datasets_col = mongo_db.get_datasets_col()
+annotations_col = mongo_db.get_annotations_col()
 
 
 def get_all_datasets_count() -> int:
@@ -27,21 +28,15 @@ def get_all_datasets() -> list[str]:
         # ids.append(c.get("dataset_id"))
     # return {"dataset_ids": ids}
 
-def get_iamge_list_from_tar(dataset_id) -> list[str]:
-    result = datasets_col.find_one({"dataset_id": dataset_id})
-    return [annot.get("image_id") for annot in result.get("annotations")]
+def get_image_list_from_tar(dataset_id) -> list[str]:
+    return datasets_col.find_one({"dataset_id": dataset_id}).get("annotations")
 
 def get_image_from_tar(dataset_id, image_id) -> io.BytesIO:
-    result = datasets_col.find_one({"dataset_id": dataset_id})
-    for image_info in result.get("annotations"):
-        if image_info.get("image_id") == image_id:
-            print(image_info.get("image_id") )
-            image_path = image_info.get("image_path")
-            with tarfile.open(result.get("dataset_path"), 'r') as tar:
-                # print(tar.extractfile(image_path).read())
-                return io.BytesIO(tar.extractfile(image_path).read())
-    
-    return None
+    dataset = datasets_col.find_one({"dataset_id": dataset_id})
+    annot = annotations_col.find_one({"dataset_id": dataset_id, "image_id": image_id})
+    with tarfile.open(dataset.get("dataset_path"), 'r') as tar:
+        return io.BytesIO(tar.extractfile(annot.get("image_path")).read())
+
 
 def get_images_from_tar():
     pass
@@ -60,8 +55,7 @@ def get_image_stat(dataset_id: str, image_id: str, queries: set[str]):
 
 def get_stats(dataset_id: str, queries: set[str]) -> dict:
     stat = dict()
-
-    result = datasets_col.find_one({"dataset_id": dataset_id}).get("annotations")
+    result = [o for o in annotations_col.find({"dataset_id": dataset_id}, {"_id": False})]
 
     if "images_sizes" in queries:
         stat["images_size"] = list({(annot.get("size").get("width"), annot.get("size").get("height")) for annot in result})
@@ -95,11 +89,7 @@ def get_stats(dataset_id: str, queries: set[str]) -> dict:
 
 def get_stat(dataset_id: str, image_id: str, queries: set[str]) -> dict:
     stat = dict()
-
-    for annot in datasets_col.find_one({"dataset_id": dataset_id}).get("annotations"):
-        if annot.get("image_id") == image_id:
-            result = annot
-    print(result)
+    result = annotations_col.find_one({"dataset_id": dataset_id, "image_id": image_id})
 
     if "images_sizes" in queries:
         stat["images_size"] = list((result.get("size").get("width"), result.get("size").get("height")))
@@ -125,7 +115,7 @@ def get_stat(dataset_id: str, image_id: str, queries: set[str]) -> dict:
         stat["objects"] = objects_dict
     if "objects_sizes_avg" in queries:
         stat["objects_sizes_avg"] = \
-            sum(_get_object_size(obj.get("bndbox")) for obj in annot.get("objects")) \
+            sum(_get_object_size(obj.get("bndbox")) for obj in result.get("objects")) \
                 / len(result.get("objects"))
 
     return stat
