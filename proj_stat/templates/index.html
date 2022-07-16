@@ -8,14 +8,15 @@
     div {
         border: 0 solid;
     }
-
+    canvas {
+        display: relative;
+    }
     .container {
         width: 100%;
         clear: both;
         padding: 0;
         margin: 0;
     }
-
     .left {
         display: flex;
         float: left;
@@ -24,38 +25,38 @@
         padding: 0;
         margin: 0;
     }
-
     .center {
         display: flex;
-        position: rcelative;
+        flex-direction: column;
+        position: relative;
         width: 25%;
         padding: 0;
         margin: 0 auto;
     }
-
     .right {
         display: flex;
+        flex-direction: column;
+        align-items: center;
         float: right;
+        justify-content: space-around;
         position: relative;
         width: 50%;
         padding: 0;
         margin: 0;
     }
-
 </style>
 <body>
 <div class="container">
     <div class="right" id="right_aside" hidden>
         Stats
-        <div id="piechart" style="width: 900px; height: 500px;"></div>
-        <canvas id="image_canvas" style="width: 900px; height: 500px;"></canvas>
-        <div id="image_div"></div>
+        <div id="piechart" style="width: 500px; height: 500px;"></div>
+        <canvas id="image_canvas" style="width: 500px; height: 500px;"></canvas>
+        <div id="image_stat"></div>
     </div>
     <div class="left">
         <div>
             Datasets list
-            <ol id="dataset_id_list" type="1">
-            </ol>
+            <ol id="dataset_id_list" type="1"></ol>
         </div>
     </div>
     <div class="center">
@@ -124,26 +125,45 @@
         });
     }
     const load_image = function(dataset_id, image_id) {
-        $('#image_div').html("");
-        let $img = $('img');
+        console.log("call image");
+        const img = new Image();
+        const ctx = document.getElementById("image_canvas").getContext("2d");
+        ctx.save()
+        ctx.clearRect(0, 0, 500, 500);
+        img.addEventListener("load", function() {
+            const image_ratio = 0.1
+            ctx.drawImage(img, 0, 0, img.width, img.height, 0, 0, img.width * image_ratio, img.height * image_ratio);
+            drawOverlays(dataset_id, image_id, ctx, image_ratio);
+        }, false);
         const url = "/datasets/" + dataset_id + "/images/" + image_id;
-        $img.attr("src", url);
-        $('#image_div').append($img);
-        // var ctx = document.getElementById('image_canvas').getContext("2d");
-        // ctx.drawImage( $img , 0, 0, 200, 200);
-        //  $.ajax({
-        //     type: "get",
-        //     url: "/datasets/" + dataset_id + "/images/" + image_id,
-        //     dataType: "image/jpg",        // response type
-        //     success: function (image) {
-        //         var ctx = document.getElementById('image_canvas').getContext("2d");
-        //         ctx.drawImage( image , 0, 0, 200, 200);
-        //     },
-        //     error: function (error) {
-        //         alert("error");
-        //         console.log(error);
-        //     }
-        // });       
+        img.src = url;
+    }
+    const drawOverlays = function(dataset_id, image_id, ctx, image_ratio) {
+        console.log("run");
+        $.ajax({
+            type: "get",
+            url: "/datasets/" + dataset_id + "/stats/" + image_id,
+            dataType: "JSON",        // response type
+            success: function (data) {
+                ctx.restore();
+                for (const obj of data.result["objects"]) {
+                    const p = obj["bndbox"];
+                    const xmin = parseFloat(p["xmin"]) * image_ratio;
+                    const ymin = parseFloat(p["ymin"]) * image_ratio;
+                    const xmax = parseFloat(p["xmax"]) * image_ratio;
+                    const ymax = parseFloat(p["ymax"]) * image_ratio;
+                    ctx.strokeStyle = "lightblue";
+                    ctx.strokeRect(
+                        xmin, ymin, (xmax-xmin), (ymax - ymin)
+                    );
+                    // ctx.stroke();
+                }
+                $('#image_stat').text(JSON.stringify(data));
+            },
+            error: function () {
+                alert("error");
+            }
+        })
     }
     const ajax_stats = function (dataset_id) {
         google.charts.load('current', {'packages':['corechart']});
@@ -161,7 +181,7 @@
                 }
                 const graph_data = google.visualization.arrayToDataTable(data_list);
                 const options = {
-                    title: 'My Daily Activities'
+                    title: 'Objects in Dataset'
                 };
                 var chart = new google.visualization.PieChart(document.getElementById('piechart'));
                 chart.draw(graph_data, options);

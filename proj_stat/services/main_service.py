@@ -89,7 +89,10 @@ def get_stats(dataset_id: str, queries: set[str]) -> dict:
 
 def get_stat(dataset_id: str, image_id: str, queries: set[str]) -> dict:
     stat = dict()
-    result = annotations_col.find_one({"dataset_id": dataset_id, "image_id": image_id})
+    result = annotations_col.find_one({"dataset_id": dataset_id, "image_id": image_id}, {"_id": False})
+    for k, v in result.items():
+        stat[k] = v
+        
 
     if "images_sizes" in queries:
         stat["images_size"] = list((result.get("size").get("width"), result.get("size").get("height")))

@@ -39,7 +39,7 @@ class Annotation(dict):
         self["dataset_id"]: str = mapper.get("dataset_id")
         self["image_path"]: str = mapper.get("image_path")
         self["size"]: tuple[int] = mapper.get("size")
-        self["objects"]: list[AnnotationObject] = mapper.get("objects")
+        self["objects"]: list[AnnotationObject] = mapper.get("objects")     # keys: {"name", "bndbox"}
 
     @classmethod
     def from_parsed_annotations(cls, tar_path, annotations):
