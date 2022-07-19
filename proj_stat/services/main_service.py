@@ -33,8 +33,8 @@ def get_image_list_from_tar(dataset_id) -> list[str]:
 
 def get_image_from_tar(dataset_id, image_id) -> io.BytesIO:
     dataset = datasets_col.find_one({"dataset_id": dataset_id})
-    annot = annotations_col.find_one({"dataset_id": dataset_id, "image_id": image_id})
-    with tarfile.open(dataset.get("dataset_path"), 'r') as tar:
+    annot = annotations_col.find_one({"image_id": {"$in": dataset.get("annotations")}})
+    with tarfile.open(os.path.join(config.TAR_SOURCE, dataset.get("dataset_path")), 'r') as tar:
         return io.BytesIO(tar.extractfile(annot.get("image_path")).read())
 
 

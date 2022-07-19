@@ -15,11 +15,11 @@ def update_database():
         parsed_data = parse_annotations_from_tar(tar)
 
         # Dataset => dataset_id: str, dataset_path: str, dataset_hash: str, annotations: list[str]
-        dataset = Dataset.from_parsed_annotations(tar, parsed_data)
+        dataset = Dataset.from_parsed_annotations(tar)
         # [Annotation] => image_id: str, dataset_id: str, image_path: str, size: tuple[int], objects: list[AnnotationObject]
         annotations = Annotation.from_parsed_annotations(tar, parsed_data)
 
-        datasets_col.insert_one(dataset)
+        datasets_col.insert_many(dataset)
         annotations_col.insert_many(annotations)
 
 def get_tarfiles(source_dir=config.TAR_SOURCE):
