@@ -18,6 +18,7 @@ class Dataset(dict):
         self["dataset_path"]: str = mapper.get("dataset_path")
         self["dataset_hash"]: str = mapper.get("dataset_hash")
         self["annotations"]: list[str] = mapper.get("annotations")
+        self.annotations: list[Annotation]
 
     @classmethod
     def from_parsed_annotations(cls, tar_path, annotations):
@@ -27,6 +28,10 @@ class Dataset(dict):
             "dataset_hash": get_hash_from_tar(tar_path),
             "annotations": [k.rpartition(r"/")[2].partition(".")[0] for k in annotations.keys()]
         })
+
+    @staticmethod
+    def get_stats(annotations: list[Annotation]):
+        pass
 
 
 class Annotation(dict):

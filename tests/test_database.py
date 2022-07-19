@@ -112,6 +112,13 @@ def test_get_as_py_class():
     annotations_col = mongo_db.get_annotations_col()
     datasets_col = mongo_db.get_datasets_col()
 
-    cursor = datasets_col.find({})
-    sample_dataset_id = cursor[0].get("dataset_id")
+    datasets_cursor = datasets_col.find({})
+    sample_dataset_id = datasets_cursor[0].get("dataset_id")
+
     dataset = Dataset(datasets_col.find_one({"dataset_id": sample_dataset_id}))
+    log.debug(dataset)
+
+    sample_annotations = annotations_col.find({"dataset_id": sample_dataset_id})
+
+    dataset.annotations = [Annotation(o) for o in sample_annotations]
+    log.debug(dataset.annotations)
