@@ -13,13 +13,6 @@ def test_get_tarfiles():
     log.debug(init_service.get_tarfiles())
     assert init_service.get_tarfiles() is not None
 
-def test_get_hash_from_tar():
-    tarfiles = init_service.get_tarfiles()
-    hash_code = get_hash_from_tar(tarfiles[0])
-    log.debug(hash_code)
-    assert get_hash_from_tar(tarfiles[0]) != get_hash_from_tar(tarfiles[1])
-    assert get_hash_from_tar(tarfiles[1]) == get_hash_from_tar(tarfiles[1])
-
 def test_load_data():
     tarfile_path = init_service.get_tarfiles()[0]
     log.debug(tarfile_path)

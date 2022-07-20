@@ -4,9 +4,9 @@
 annotations_schema = {
     "$jsonSchema": {
         "bsonType": "object",
-        "required": ["image_id"],
+        "required": ["tar_path"],
         "properties": {
-            "image_id": {
+            "tar_path": {
                 "bsonType": "string"
             }
         }
@@ -15,9 +15,9 @@ annotations_schema = {
 datasets_schema = {
     "$jsonSchema": {
         "bsonType": "object",
-        "required": ["dataset_id"],
+        "required": ["tar_path"],
         "properties": {
-            "dataset_id": {
+            "tar_path": {
                 "bsonType": "string"
             }
         }
@@ -114,7 +114,3 @@ datasets_schema = {
 #         }
 #     }
 # }
-
-
-if __name__ == "__main__":
-    sample_datasets = {}

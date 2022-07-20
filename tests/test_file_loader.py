@@ -33,14 +33,23 @@ def test_tar_read():
 
 
 def test_get_subset_from_tar():
-    sample_tar_path = ["/".join(config.TAR_SOURCE, p) for p in os.listdir(config.TAR_SOURCE) if p.endswith(".tar")][0]
+    sample_tar_path = [os.path.join(config.TAR_SOURCE, p) for p in os.listdir(config.TAR_SOURCE) if p.endswith(".tar")][0]
     # sample_tar_path = os.path.join(config.TAR_SOURCE, "test_7.tar")
-    result = collection_cls.get_subsets_from_tar(sample_tar_path)
-    logger.debug(result)
-    with tarfile.open(sample_tar_path, "r") as tar:
+
+    with tarfile.open(sample_tar_path, 'r') as tar:
+        subset_names = [
+            t.name
+            for t in tar
+            if t.name.endswith(".txt") and os.path.basename(os.path.dirname(t.name)) == "ImageSets"
+        ]
+        for name in subset_names:
+            extracted_file = tar.extractfile(name)
+        logger.debug(extracted_file)
+        logger.debug([ l.strip() for l in extracted_file.readlines() if len(l.strip()) > 3 ])
+    # with tarfile.open(sample_tar_path, "r") as tar:
         # content = tar.extractfile(result[0])
         # logger.debug([l.decode().strip() for l in content])
-        for t in tar:
-            if t.name.endswith(".xml"):
-                logger.debug(tar.getmember(t.name).chksum)
+        # for t in tar:
+            # if t.name.endswith(".xml"):
+                # logger.debug(tar.getmember(t.name).chksum)
 

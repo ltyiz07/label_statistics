@@ -81,11 +81,11 @@
             dataType: "JSON",        // response type
             // data: JSON.(data),
             success: function (data) {
-                for (const dataset_id of data.result) {
+                for (const dataset_prop of data.result) {
                     let $li = $('<li>')
                     $li.css({margin: "10px", padding: "5px", background: "lightblue"})
-                    $li.text(dataset_id);
-                    $li.on("click", ()=>{ load_dataset(dataset_id, $li); });
+                    $li.text(dataset_prop["tar_name"] + ":" + dataset_prop["dataset_name"]);
+                    $li.on("click", ()=>{ load_dataset(dataset_prop["tar_name"] + ":" + dataset_prop["dataset_name"], $li); });
                     $('#dataset_id_list').append($li);
                 }
             },

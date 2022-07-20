@@ -23,18 +23,17 @@ def get_all_datasets_count() -> int:
 
 def get_all_datasets() -> list[str]:
     cursor = datasets_col.find({}, {"_id": False})
-    return [c["dataset_id"] for c in cursor]
+    return [{"tar_name": c["tar_name"], "dataset_name": c["dataset_name"]} for c in cursor]
     # for c in cursor:
         # ids.append(c.get("dataset_id"))
     # return {"dataset_ids": ids}
 
-def get_image_list_from_tar(dataset_id) -> list[str]:
-    return datasets_col.find_one({"dataset_id": dataset_id}).get("annotations")
+def get_image_list_from_tar(tar_name, dataset_name) -> list[str]:
+    return datasets_col.find_one({"tar_name": tar_name, "dataset_name": dataset_name}).get("image_names")
 
-def get_image_from_tar(dataset_id, image_id) -> io.BytesIO:
-    dataset = datasets_col.find_one({"dataset_id": dataset_id})
-    annot = annotations_col.find_one({"image_id": {"$in": dataset.get("annotations")}})
-    with tarfile.open(os.path.join(config.TAR_SOURCE, dataset.get("dataset_path")), 'r') as tar:
+def get_image_from_tar(tar_name, image_name) -> io.BytesIO:
+    annot = annotations_col.find_one({"tar_name": tar_name, "image_name": image_name})
+    with tarfile.open(os.path.join(config.TAR_SOURCE, annot.get("tar_path")), 'r') as tar:
         return io.BytesIO(tar.extractfile(annot.get("image_path")).read())
 
 
@@ -53,9 +52,10 @@ def get_image_stat(dataset_id: str, image_id: str, queries: set[str]):
     result = datasets_col.find_one({"dataset_id": dataset_id}).get("annotations")
     return stat
 
-def get_stats(dataset_id: str, queries: set[str]) -> dict:
+def get_stats(tar_name: str, dataset_name: str, queries: set[str]) -> dict:
     stat = dict()
-    result = [o for o in annotations_col.find({"dataset_id": dataset_id}, {"_id": False})]
+    image_names = datasets_col.find_one({"tar_name": tar_name, "dataset_name": dataset_name}, {"_id": False}).get("image_names")
+    result = [o for o in annotations_col.find({"tar_name": tar_name, "image_name": {"$in": image_names}}, {"_id": False})]
 
     if "images_sizes" in queries:
         stat["images_size"] = list({(annot.get("size").get("width"), annot.get("size").get("height")) for annot in result})
@@ -87,12 +87,11 @@ def get_stats(dataset_id: str, queries: set[str]) -> dict:
 
     return stat
 
-def get_stat(dataset_id: str, image_id: str, queries: set[str]) -> dict:
+def get_stat(tar_name: str, image_name: str, queries: set[str]) -> dict:
     stat = dict()
-    result = annotations_col.find_one({"dataset_id": dataset_id, "image_id": image_id}, {"_id": False})
+    result = annotations_col.find_one({"tar_name": tar_name, "image_name": image_name}, {"_id": False})
     for k, v in result.items():
         stat[k] = v
-        
 
     if "images_sizes" in queries:
         stat["images_size"] = list((result.get("size").get("width"), result.get("size").get("height")))

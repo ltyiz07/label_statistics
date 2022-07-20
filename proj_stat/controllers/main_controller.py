@@ -38,11 +38,12 @@ def get_image_list(dataset_id):
     Returns:
         Challenge
     """
-    return jsonify({"result": main_service.get_image_list_from_tar(dataset_id)})
+    tar_name, dataset_name = dataset_id.split(":")
+    return jsonify({"result": main_service.get_image_list_from_tar(tar_name, dataset_name)})
 
 
-@datasets.route("/<string:dataset_id>/images/<string:image_id>", methods=["GET"])
-def get_image(dataset_id: str, image_id: str):
+@datasets.route("/<string:dataset_id>/images/<string:image_name>", methods=["GET"])
+def get_image(dataset_id: str, image_name: str):
     """request evaluation of model to server
 
     Args:
@@ -50,7 +51,8 @@ def get_image(dataset_id: str, image_id: str):
     Returns:
         SubmissionInfo
     """
-    return send_file(main_service.get_image_from_tar(dataset_id, image_id), mimetype="image/jpeg")
+    tar_name, dataset_name = dataset_id.split(":")
+    return send_file(main_service.get_image_from_tar(tar_name, image_name), mimetype="image/jpeg")
     # return f"call get_image with, dataset_id: {dataset_id}, image_id: {image_id}"
 
 
@@ -64,13 +66,14 @@ def get_stats(dataset_id):
     Returns:
         SubmissionResult
     """
+    tar_name, dataset_name = dataset_id.split(":")
     queries_set = set(request.args.get("queries", "").split(","))
-    queries_set = list(map(lambda x: x.lower().strip(), queries_set))
-    return jsonify({"result": main_service.get_stats(dataset_id, queries_set)})
+    queries_set = set(map(lambda x: x.lower().strip(), queries_set))
+    return jsonify({"result": main_service.get_stats(tar_name, dataset_name, queries_set)})
 
 
-@datasets.route("/<string:dataset_id>/stats/<string:image_id>", methods=["GET"])
-def get_stat(dataset_id, image_id):
+@datasets.route("/<string:dataset_id>/stats/<string:image_name>", methods=["GET"])
+def get_stat(dataset_id, image_name):
     """get all status on progress and results
 
     Args:
@@ -79,9 +82,10 @@ def get_stat(dataset_id, image_id):
         response (dict): submission status and results
     """
     # return f"call get_stat with, dataset_id: {dataset_id}, image_id: {image_id}"
+    tar_name, dataset_name = dataset_id.split(":")
     queries_set = set(request.args.get("queries", "").split(","))
     queries_set = list(map(lambda x: x.lower().strip(), queries_set))
-    return jsonify({"result": main_service.get_stat(dataset_id, image_id, queries_set)})
+    return jsonify({"result": main_service.get_stat(tar_name, image_name, queries_set)})
 
 @datasets.route("/updateAll", methods=["GET"])
 def update_datasets():

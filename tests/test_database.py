@@ -50,56 +50,9 @@ def test_col_datasets_validation():
     except:
         log.debug(f"OK. Expected exception.")
 
-    sample_dataset =  Dataset({
-        "dataset_id": "test_filename",
-        "dataset_path": "test_filename.tar",
-        "dataset_hash": "21324114",
-        "annotations": ["21231234", "21231236"],
-    })
-    sample_annotation_1 = Annotation({
-        "image_id": "21231234",
-        "dataset_id": "test_filename",
-        "image_path": "Image/21231234.jpg",
-        "size": {"width": 21, "height": 31},
-        "objects": [
-            {
-                "name": "bmw_car",
-                "bndbox": {
-                    "xmin": "45.21", "ymin": "22.00",
-                    "xmax": "24.00", "ymax": "21.00"
-                }
-            },
-            {
-                "name": "random_car",
-                "bndbox": {
-                "xmin": "45.21", "ymin": "22.00",
-                "xmax": "24.00", "ymax": "21.00"
-                }
-            }
-        ]
-    })
-    sample_annotation_2 = Annotation({
-        "image_id": "21231236",
-        "image_path": "Image/21231235.jpg",
-        "dataset_id": "test_filename",
-        "size": {"width": 22, "height": 32},
-        "objects": [
-            {
-                "name": "bmw_car",
-                "bndbox": {
-                    "xmin": "45.21", "ymin": "22.00",
-                    "xmax": "24.00", "ymax": "21.00"
-                }
-            },
-            {
-                "name": "random_car",
-                "bndbox": {
-                "xmin": "45.21", "ymin": "22.00",
-                "xmax": "24.00", "ymax": "21.00"
-                }
-            }
-        ]
-    })
+    sample_dataset =  Dataset({"tar_path": "test_filename.tar"})
+    sample_annotation_1 = Annotation({"tar_path": "test_filename.tar"})
+    sample_annotation_2 = Annotation({"tar_path": "test_filename.tar"})
     datasets_col.insert_one(sample_dataset)
     # annotations_col.insert_many([sample_annotation_1, sample_annotation_2])
     annotations_col.insert_one(sample_annotation_1)
@@ -112,13 +65,21 @@ def test_get_as_py_class():
     annotations_col = mongo_db.get_annotations_col()
     datasets_col = mongo_db.get_datasets_col()
 
-    datasets_cursor = datasets_col.find({})
-    sample_dataset_id = datasets_cursor[0].get("dataset_id")
+    datasets_cursor = datasets_col.find_one()
+    sample_tar_file = datasets_cursor.get("tar_path")
 
-    dataset = Dataset(datasets_col.find_one({"dataset_id": sample_dataset_id}))
+    dataset = Dataset(datasets_col.find_one({"tar_path": sample_tar_file}))
     log.debug(dataset)
 
-    sample_annotations = annotations_col.find({"dataset_id": sample_dataset_id})
+    sample_annotations = annotations_col.find({"dataset_id": sample_tar_file})
 
     dataset.annotations = [Annotation(o) for o in sample_annotations]
     log.debug(dataset.annotations)
+
+
+def test_db_update():
+    init_service.update_database()
+    annotations_col = mongo_db.get_annotations_col()
+    datasets_col = mongo_db.get_datasets_col()
+    for i in annotations_col.find():
+        log.debug(i)
