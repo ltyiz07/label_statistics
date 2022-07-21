@@ -31,7 +31,7 @@ class Annotation(dict):
         self["size"]: tuple[int] = mapper.get("size")       # width, height
         self["objects"]: list[TypedDict("Object", {"name": str, "bndbox": dict})] = mapper.get("objects")     # keys: {"name", "bndbox"}
         self["edited_date"]: datetime.datetime = mapper.get("edited_date")
-
+        
     @property
     def tar_path(self): return self.get("tar_path")
     @property
@@ -59,6 +59,11 @@ class Dataset(dict):
         self["dataset_hash"]: str = mapper.get("dataset_hash")
         self["image_names"]: list[str] = mapper.get("image_names")
         self["edited_date"]: datetime.datetime = mapper.get("edited_date")
+        """
+        image_count
+        object_count
+        description
+        """
 
     @property
     def tar_path(self): return self.get("tar_path")

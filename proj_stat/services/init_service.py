@@ -9,7 +9,7 @@ from proj_stat.database import mongo_db
 from proj_stat import config
 from proj_stat.database.collection_cls import Annotation, Dataset
 
-def update_database():
+def upload_database():
     # Drop all database and recreate collections
     mongo_db.create_collections_with_schemas()
 

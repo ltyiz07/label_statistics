@@ -60,7 +60,7 @@ def test_col_datasets_validation():
     log.debug("All good.")
 
 def test_get_as_py_class():
-    init_service.update_database()
+    init_service.upload_database()
 
     annotations_col = mongo_db.get_annotations_col()
     datasets_col = mongo_db.get_datasets_col()
@@ -78,7 +78,7 @@ def test_get_as_py_class():
 
 
 def test_db_update():
-    init_service.update_database()
+    init_service.upload_database()
     annotations_col = mongo_db.get_annotations_col()
     datasets_col = mongo_db.get_datasets_col()
     for i in annotations_col.find():

@@ -36,4 +36,4 @@ def test_parse_others():
             log.debug(os.path.basename(os.path.dirname(t.name)))
 
 def test_database_update():
-    init_service.update_database()
+    init_service.upload_database()

@@ -91,5 +91,5 @@ def get_stat(dataset_id, image_name):
 def update_datasets():
     ################ CAUTION: Have to update this method #######################
     start = datetime.now()
-    init_service.update_database()
+    init_service.upload_database()
     return jsonify({"status": "success", "duration(microsec)": (datetime.now() - start).microseconds})
