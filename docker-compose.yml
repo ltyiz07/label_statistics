@@ -5,29 +5,22 @@ services:
   web:
     build: .
     container_name: web
-    working_dir: /flask_server
+    working_dir: .
     ports:
       - "5000:5000"
     environment:
-      - CELERY_BROKER_URL=redis://redis:6379/0
-      - CELERY_RESULT_BACKEND=redis://redis:6379/0
-      - REDIS_HOST=redis
-    depends_on:
-      - redis
-
-  worker:
-    build: .
-    container_name: worker
-    working_dir: /flask_server
+      - MONGO_HOST=mongodb://mongodb0.example.com:27017
+      - FLASK_APP=proj_stat.app
+      - FLASK_ENV=development
     entrypoint: "python"
-    command: " -m celery --app annotation_statistics.services.evaluator.celler_app worker -l INFO --concurrency=4"
+    command: " -m flask run --host=0.0.0.0"
+    depends_on:
+      - database
+
+  database:
+    image: mongo
+    container_name: database
+    working_dir: /data/db
     environment:
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
-    depends_on:
-      - web
-      - redis
-
-  redis:
-    image: redis:alpine
-    container_name: redis

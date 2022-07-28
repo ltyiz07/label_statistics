@@ -2,17 +2,22 @@ import os
 import json
 import datetime
 import tarfile
-from unicodedata import name
-import xmltodict
-from proj_stat import config
-
 from typing import TypedDict
+from unicodedata import name
+from deprecated import deprecated
+
+import xmltodict
+
+from proj_stat import config
+from proj_stat.database import mongo_db
 
 
-
+datasets_col = mongo_db.get_datasets_col()
+annotations_col = mongo_db.get_annotations_col()
 """
 추후에 필요한 통계데이터들을 클래스 내부에 정의 하고 사용 -> 성능, 기능, 편의성 등에서 효율적
 """
+
 
 ##### Annotation #####################################################################
 class Annotation(dict):
@@ -24,26 +29,25 @@ class Annotation(dict):
             mapper = vargs[0]
         else:
             mapper = kwargs
-        self["tar_path"]: str = mapper.get("tar_path")
-        self["tar_name"]: str = mapper.get("tar_name")
-        self["image_path"]: str = mapper.get("image_path")
-        self["image_name"]: str = mapper.get("image_name")
-        self["size"]: tuple[int] = mapper.get("size")       # width, height
-        self["objects"]: list[TypedDict("Object", {"name": str, "bndbox": dict})] = mapper.get("objects")     # keys: {"name", "bndbox"}
-        self["edited_date"]: datetime.datetime = mapper.get("edited_date")
-        
-    @property
-    def tar_path(self): return self.get("tar_path")
-    @property
-    def image_path(self): return self.get("image_path")
-    @property
-    def image_id(self): return self.get("image_id")
-    @property
-    def size(self): return self.get("size")
-    @property
-    def objects(self): return self.get("objects")
-    @property
-    def edited_date(self): return self.get("edited_date")
+        self.tar_path: str = mapper.get("tar_path")
+        self.tar_name: str = mapper.get("tar_name")
+        self.image_path: str = mapper.get("image_path")
+        self.image_name: str = mapper.get("image_name")
+        self.size: tuple[int] = mapper.get("size")       # width, height
+        self.objects: list[TypedDict("Object", {"name": str, "bndbox": dict})] = mapper.get("objects")     # keys: {"name", "bndbox"}
+        self.edited_date: datetime.datetime = mapper.get("edited_date")
+
+    def __update__(self, *vargs, **kwargs):
+        pass
+    
+    @staticmethod
+    def count_all():
+        return datasets_col.count_documents({})
+
+    @classmethod
+    def find(cls):
+        cursor = datasets_col.find({}, {"_id": False})
+        return [{"tar_name": c["tar_name"], "dataset_name": c["dataset_name"]} for c in cursor]
 
 ##### Dataset #####################################################################
 class Dataset(dict):
@@ -52,33 +56,29 @@ class Dataset(dict):
             mapper = vargs[0]
         else:
             mapper = kwargs
-        self["tar_path"]: str = mapper.get("tar_path")
-        self["tar_name"]: str = mapper.get("tar_name")
-        self["dataset_path"]: str = mapper.get("dataset_path")
-        self["dataset_name"]: str = mapper.get("dataset_name")
-        self["dataset_hash"]: str = mapper.get("dataset_hash")
-        self["image_names"]: list[str] = mapper.get("image_names")
-        self["edited_date"]: datetime.datetime = mapper.get("edited_date")
+        self.tar_path: str = mapper.get("tar_path")
+        self.tar_name: str = mapper.get("tar_name")
+        self.dataset_path: str = mapper.get("dataset_path")
+        self.dataset_name: str = mapper.get("dataset_name")
+        self.dataset_hash: str = mapper.get("dataset_hash")
+        self.image_names: list[str] = mapper.get("image_names")
+        self.edited_date: datetime.datetime = mapper.get("edited_date")
         """
         image_count
         object_count
         description
         """
+    
+    def count_all():
+        pass
 
-    @property
-    def tar_path(self): return self.get("tar_path")
-    @property
-    def dataset_path(self): return self.get("dataset_path")
-    @property
-    def dataset_hash(self): return self.get("dataset_hash")
-    @property
-    def image_ids(self): return self.get("image_ids")
-    @property
-    def edited_date(self): return self.get("edited_date")
+    def find():
+        pass
 
 
 ##### functions #####################################################################
 
+@deprecated
 def parse_annotations_from_tar(tar_path: str):
     """
     extract Annotations/*.xml files and parse content
@@ -97,6 +97,7 @@ def parse_annotations_from_tar(tar_path: str):
         }
 
 
+@deprecated
 def get_hash_from_tar(tar_path: str, annotations: list[str]):
     """
     generate hash from tar files content, using filenames, file-sizes, file-mtime

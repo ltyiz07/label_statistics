@@ -47,7 +47,7 @@ def upload_database():
                     "edited_date": datetime.datetime.now(),
                 })
                 # Insert to database
-                annotation_col.insert_one(annot)
+                annotation_col.insert_one(annot.__dict__)
             # Add dataset
             for dataset_path in dataset_paths:
                 image_name_list = [ l.decode().strip() for l in tar.extractfile(dataset_path).readlines() if len(l.strip()) > 3 ]
@@ -61,8 +61,10 @@ def upload_database():
                     "image_names": image_name_list,
                     "edited_date": datetime.datetime.now(),
                 })
-                dataset_col.insert_one(dataset)
+                dataset_col.insert_one(dataset.__dict__)
 
+def update_database():
+    pass
 
 def get_dataset_hash():
     pass

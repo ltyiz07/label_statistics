@@ -18,7 +18,6 @@ annotations_col = mongo_db.get_annotations_col()
 
 
 def get_all_datasets_count() -> int:
-    # len(datasets_col.find({}))
     return datasets_col.count_documents({})
 
 def get_all_datasets() -> list[str]:

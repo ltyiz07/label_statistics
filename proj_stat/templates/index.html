@@ -3,6 +3,8 @@
 <head>
     <meta charset="utf-8">
     <title>My test page</title>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 </head>
 <style>
     div {
@@ -50,7 +52,8 @@
     <div class="right" id="right_aside" hidden>
         Stats
         <div id="piechart" style="width: 500px; height: 500px;"></div>
-        <canvas id="image_canvas" style="width: 500px; height: 500px;"></canvas>
+        <canvas id="image_canvas"></canvas>
+        <div id="piechart_2" style="width: 500px; height: 500px;"></div>
         <div id="image_stat"></div>
     </div>
     <div class="left">
@@ -65,8 +68,6 @@
     </div>
 </div>
 
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 
 <script>
     let challenge_data;
@@ -76,10 +77,8 @@
         $.ajax({
             type: "get",
             url: "/datasets/",
-            // contentType: "application/x-www-form-urlencoded; charset=utf-8", // request type
-            // contentType: "application/json; charset=utf-8", // request type
+            contentType: "application/x-www-form-urlencoded; charset=utf-8", // request type
             dataType: "JSON",        // response type
-            // data: JSON.(data),
             success: function (data) {
                 for (const dataset_prop of data.result) {
                     let $li = $('<li>')
@@ -98,74 +97,22 @@
     const load_dataset = function (dataset_id, elem) {
         $('#dataset_id_list').children().css("background-color", "lightblue");
         $('#right_aside').attr("hidden", false);
-        ajax_images_list(dataset_id, elem);
-        ajax_stats(dataset_id);
+        clearDataset();
+        ajaxImagesList(dataset_id, elem);
+        ajaxImagesStats(dataset_id);
     }
 
-    const ajax_images_list = function (dataset_id, elem) {
-        $.ajax({
-            type: "get",
-            url: "/datasets/" + dataset_id + "/images",
-            dataType: "JSON",        // response type
-            success: function (data) {
-                $('#images_list').html("");
-                challenge_data = data;
-                elem.css({background: "MediumSlateBlue"});
-                for (const image_id of data.result) {
-                    let $li = $('<li>');
-                    $li.css({margin: "10px", padding: "5px", background: "orange"});
-                    $li.text(image_id);
-                    $li.on("click", () => {load_image(dataset_id, image_id)});
-                    $('#images_list').append($li);
-                }
-            },
-            error: function () {
-                alert("error");
-            }
-        });
+    const clearDataset = function () {
+        document.getElementById("piechart").innerHTML = "";
+
+        const canvas = document.getElementById("image_canvas");
+        ctx = canvas.getContext("2d");
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+        document.getElementById("piechart_2").innerHTML = "";
     }
-    const load_image = function(dataset_id, image_id) {
-        console.log("call image");
-        const img = new Image();
-        const ctx = document.getElementById("image_canvas").getContext("2d");
-        ctx.save()
-        ctx.clearRect(0, 0, 500, 500);
-        img.addEventListener("load", function() {
-            const image_ratio = 0.1
-            ctx.drawImage(img, 0, 0, img.width, img.height, 0, 0, img.width * image_ratio, img.height * image_ratio);
-            drawOverlays(dataset_id, image_id, ctx, image_ratio);
-        }, false);
-        const url = "/datasets/" + dataset_id + "/images/" + image_id;
-        img.src = url;
-    }
-    const drawOverlays = function(dataset_id, image_id, ctx, image_ratio) {
-        console.log("run");
-        $.ajax({
-            type: "get",
-            url: "/datasets/" + dataset_id + "/stats/" + image_id,
-            dataType: "JSON",        // response type
-            success: function (data) {
-                ctx.restore();
-                for (const obj of data.result["objects"]) {
-                    const p = obj["bndbox"];
-                    const xmin = parseFloat(p["xmin"]) * image_ratio;
-                    const ymin = parseFloat(p["ymin"]) * image_ratio;
-                    const xmax = parseFloat(p["xmax"]) * image_ratio;
-                    const ymax = parseFloat(p["ymax"]) * image_ratio;
-                    ctx.strokeStyle = "lightblue";
-                    ctx.strokeRect(
-                        xmin, ymin, (xmax-xmin), (ymax - ymin)
-                    );
-                    // ctx.stroke();
-                }
-                $('#image_stat').text(JSON.stringify(data));
-            },
-            error: function () {
-                alert("error");
-            }
-        })
-    }
-    const ajax_stats = function (dataset_id) {
+
+    const ajaxImagesStats = function (dataset_id) {
         google.charts.load('current', {'packages':['corechart']});
         // google.charts.setOnLoadCallback(drawChart);
         $.ajax({
@@ -176,7 +123,7 @@
                 console.log(data.result.objects);
                 const data_list = [["object", "count"]]
 
-                for (const [k, v] of Object.entries(data.result.objects)) {
+                for (const [k, v] of Object.entries(data.result.objects).sort()) {
                     data_list.push([k, v]);
                 }
                 const graph_data = google.visualization.arrayToDataTable(data_list);
@@ -191,6 +138,106 @@
             }
         });
     }
+
+    const ajaxImagesList = function (dataset_id, elem) {
+        $.ajax({
+            type: "get",
+            url: "/datasets/" + dataset_id + "/images",
+            dataType: "JSON",        // response type
+            success: function (data) {
+                $('#images_list').html("");
+                challenge_data = data;
+                elem.css({background: "MediumSlateBlue"});
+                for (const image_id of data.result) {
+                    let $li = $('<li>');
+                    $li.css({margin: "10px", padding: "5px", background: "orange"});
+                    $li.text(image_id);
+                    $li.on("click", () => {loadImage(dataset_id, image_id)});
+                    $('#images_list').append($li);
+                }
+            },
+            error: function () {
+                alert("error");
+            }
+        });
+    }
+    const loadImage = function(dataset_id, image_id) {
+        console.log("call image");
+        const img = new Image();
+        const ctx = document.getElementById("image_canvas").getContext("2d");
+        ctx.save()
+        ctx.clearRect(0, 0, 500, 500);
+        img.addEventListener("load", function() {
+            const image_ratio = 0.3
+            ctx.imageSmoothingEnabled = false;
+            ctx.webkitImageSmoothingEnabled = false;
+            ctx.mozImageSmoothingEnabled = false;
+
+            ctx.canvas.width = img.naturalWidth * image_ratio;
+            ctx.canvas.height = img.naturalHeight * image_ratio;
+
+            // ctx.drawImage(img, 0, 0);
+            // ctx.drawImage(img, 0, 0, img.width, img.height);
+            ctx.drawImage(img, 0, 0, img.width, img.height, 0, 0, ctx.canvas.width, ctx.canvas.height);
+            // ctx.drawImage(img, 0, 0, img.width, img.height, 0, 0, 192, 120);
+            ajaxImageStat(dataset_id, image_id, ctx, image_ratio);
+        }, false);
+        const url = "/datasets/" + dataset_id + "/images/" + image_id;
+        img.src = url;
+    }
+    const ajaxImageStat = function(dataset_id, image_id, ctx, image_ratio) {
+        $.ajax({
+            type: "get",
+            url: "/datasets/" + dataset_id + "/stats/" + image_id,
+            dataType: "JSON",        // response type
+            success: function (data) {
+                // draw bounding box for objects
+                ctx.restore();
+                for (const obj of data.result["objects"]) {
+                    const p = obj["bndbox"];
+                    const xmin = parseFloat(p["xmin"]) * image_ratio;
+                    const ymin = parseFloat(p["ymin"]) * image_ratio;
+                    const xmax = parseFloat(p["xmax"]) * image_ratio;
+                    const ymax = parseFloat(p["ymax"]) * image_ratio;
+                    ctx.strokeStyle = "lightblue";
+                    ctx.strokeRect(
+                        xmin, ymin, (xmax-xmin), (ymax - ymin)
+                    );
+                    // ctx.stroke();
+                }
+                // $('#image_stat').text(JSON.stringify(data));
+
+                // draw piechart
+                console.log(data.result.objects);
+                const obj_set = {};
+                for (const obj of data.result.objects) {
+                    if (obj_set[obj.name]) {
+                        obj_set[obj.name] += 1;
+                    } else {
+                        obj_set[obj.name] = 1;
+                    }
+                }
+
+                const data_list = [["object", "count"]]
+                for (const [k, v] of Object.entries(obj_set).sort()) {
+                    data_list.push([k, v]);
+                }
+
+                const graph_data = google.visualization.arrayToDataTable(data_list);
+                const options = {
+                    title: 'Objects in Dataset'
+                };
+                var chart = new google.visualization.PieChart(document.getElementById('piechart_2'));
+                chart.draw(graph_data, options);
+            },
+            error: function () {
+                alert("error");
+            }
+        })
+    }
+
+
+
     const ajax_submission_results = function (challenge_id) {
         $.ajax({
             type: "get",
