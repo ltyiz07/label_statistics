@@ -46,6 +46,19 @@
         padding: 0;
         margin: 0;
     }
+    .pagination {
+        display: inline-block;
+    }
+    .pagination a {
+        color: black;
+        float: left;
+        padding: 8px 16px;
+        text-decoration: none;
+    }
+    .pagination a.active {
+        background-color: lightgreen;
+        color: white;
+    }
 </style>
 <body>
 <div class="container">
@@ -60,6 +73,8 @@
         <div>
             Datasets list
             <ol id="dataset_id_list" type="1"></ol>
+            <div class="pagination" id="dataset_pagination">
+            </div>
         </div>
     </div>
     <div class="center">
@@ -71,12 +86,13 @@
 
 <script>
     let challenge_data;
+    let page = 0;
 
     // page entry ajax call
     (function add_dataset_list() {
         $.ajax({
             type: "get",
-            url: "/datasets/",
+            url: "/datasets/?page={{ page }}",
             contentType: "application/x-www-form-urlencoded; charset=utf-8", // request type
             dataType: "JSON",        // response type
             success: function (data) {
@@ -86,6 +102,19 @@
                     $li.text(dataset_prop["tar_name"] + ":" + dataset_prop["dataset_name"]);
                     $li.on("click", ()=>{ load_dataset(dataset_prop["tar_name"] + ":" + dataset_prop["dataset_name"], $li); });
                     $('#dataset_id_list').append($li);
+                }
+                // create pagination links
+                for (let i = 0; i < data.pagination.page_count; i++) {
+
+                    if (i.toString() === "{{ page }}") {
+                        $("#dataset_pagination").append($("<a>").text(i).attr({
+                            "href": "/index?page=" + i.toString(),
+                            "class": "active"
+                        }));
+                    } else {
+                        $("#dataset_pagination").append($("<a>").text(i).attr("href", "/index?page=" + i.toString()));
+                    }
+
                 }
             },
             error: function () {
@@ -120,9 +149,7 @@
             url: "/datasets/" + dataset_id + "/stats?queries=images%2Cobjects",
             dataType: "JSON",        // response type
             success: function (data) {
-                console.log(data.result.objects);
                 const data_list = [["object", "count"]]
-
                 for (const [k, v] of Object.entries(data.result.objects).sort()) {
                     data_list.push([k, v]);
                 }
@@ -162,7 +189,6 @@
         });
     }
     const loadImage = function(dataset_id, image_id) {
-        console.log("call image");
         const img = new Image();
         const ctx = document.getElementById("image_canvas").getContext("2d");
         ctx.save()
@@ -208,7 +234,6 @@
                 // $('#image_stat').text(JSON.stringify(data));
 
                 // draw piechart
-                console.log(data.result.objects);
                 const obj_set = {};
                 for (const obj of data.result.objects) {
                     if (obj_set[obj.name]) {
@@ -267,7 +292,6 @@
                     $('#submission_results').append($li)
                 }
                 if (should_recall) {
-                    console.log("update");
                     setTimeout(ajax_submission_results, 200, challenge_id);
                 }
             },

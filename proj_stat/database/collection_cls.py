@@ -34,11 +34,15 @@ class Annotation(dict):
         self.image_path: str = mapper.get("image_path")
         self.image_name: str = mapper.get("image_name")
         self.size: tuple[int] = mapper.get("size")       # width, height
+
         self.objects: list[TypedDict("Object", {"name": str, "bndbox": dict})] = mapper.get("objects")     # keys: {"name", "bndbox"}
         self.edited_date: datetime.datetime = mapper.get("edited_date")
 
-    def __update__(self, *vargs, **kwargs):
-        pass
+    def update(self, *vargs, **kwargs):
+        if len(vargs) > 0:
+            mapper = vargs[0]
+        else:
+            mapper = kwargs
     
     @staticmethod
     def count_all():

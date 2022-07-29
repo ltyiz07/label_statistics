@@ -2,6 +2,7 @@ import os
 
 from flask.json import jsonify
 from flask import Flask, render_template
+from flask import request
 from flasgger import Swagger
 
 from proj_stat.controllers.main_controller import datasets
@@ -37,7 +38,8 @@ def create_app():
 
     @app.get("/index")
     def index():
-        return render_template("index.html")
+        page = request.args.get("page", 0)
+        return render_template("index.html", page=page)
 
     @app.errorhandler(404)
     def handle_404(e):

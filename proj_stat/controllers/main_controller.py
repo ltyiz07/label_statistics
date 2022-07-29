@@ -22,11 +22,17 @@ def get_datasets():
     Returns:
         datasets
     """
-    count_param = request.args.get("count", default="", type=str)
-    if count_param == "all":
+    if request.args.get("count", "", type=str) == "all":
         return jsonify({"result": main_service.get_all_datasets_count()})
-    
-    return jsonify({"result": main_service.get_all_datasets()})
+
+    page = request.args.get("page", 0)
+    pagination = main_service.DatasetPagination(page)
+    pagination_obj = {
+        "page": pagination.page,
+        "index_gap": pagination.index_gap,
+        "page_count": pagination.page_count
+        }
+    return jsonify({"result": main_service.get_datasets(pagination), "pagination": pagination_obj})
 
 
 @datasets.route("/<string:dataset_id>/images", methods=["GET"])
@@ -92,4 +98,5 @@ def update_datasets():
     ################ CAUTION: Have to update this method #######################
     start = datetime.now()
     init_service.upload_database()
+    main_service.DatasetPagination.update()
     return jsonify({"status": "success", "duration(microsec)": (datetime.now() - start).microseconds})

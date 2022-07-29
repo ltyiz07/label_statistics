@@ -1,5 +1,5 @@
 from proj_stat import config
-from proj_stat.services import init_service
+from proj_stat.services import init_service, main_service
 import tarfile
 import xmltodict
 import os
@@ -37,3 +37,18 @@ def test_parse_others():
 
 def test_database_update():
     init_service.upload_database()
+
+def test_pagination_class():
+    pagination = main_service.DatasetPagination(0)
+
+    datasets_col = mongo_db.get_datasets_col()
+    cursor = datasets_col\
+        .find({"_id": {"$gte": pagination.begin_index}})\
+            .sort([("_id", 1)])\
+                .limit(pagination.index_gap)
+
+    log.debug([{"tar_name": c["tar_name"], "dataset_name": c["dataset_name"]} for c in cursor])
+    log.debug("index_gap: " + str(pagination.index_gap) + "\n")
+    log.debug("begin_index: " + str(pagination.begin_index) + "\n")
+    log.debug("index_list: " + str(pagination.index_list) + "\n")
+    log.debug("page_count: " + str(pagination.page_count) + "\n")

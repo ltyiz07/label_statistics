@@ -6,6 +6,7 @@ import tarfile
 from itertools import chain
 from functools import reduce
 import operator
+from flask_sqlalchemy import Pagination
 import xmltodict
 
 from proj_stat import config
@@ -17,15 +18,36 @@ datasets_col = mongo_db.get_datasets_col()
 annotations_col = mongo_db.get_annotations_col()
 
 
+class DatasetPagination:
+    index_gap = 10
+    index_list = [ obj.get("_id") for e, obj in enumerate(datasets_col.find({}, {"_id": 1}).sort("_id", 1)) if e % 10 == 0 ]
+    page_count = len(index_list)
+
+    def __init__(self, page:int=0):
+        self.page = page
+
+    @property
+    def begin_index(self):
+        return self.index_list[int(self.page)]
+
+    @classmethod
+    def update(cls):
+        cls.index_list = [ obj.get("_id") for e, obj in enumerate(datasets_col.find({}, {"_id": 1}).sort("_id", 1)) if e % 10 == 0 ]
+        page_count = len(cls.index_list)
+
 def get_all_datasets_count() -> int:
     return datasets_col.count_documents({})
 
 def get_all_datasets() -> list[str]:
     cursor = datasets_col.find({}, {"_id": False})
     return [{"tar_name": c["tar_name"], "dataset_name": c["dataset_name"]} for c in cursor]
-    # for c in cursor:
-        # ids.append(c.get("dataset_id"))
-    # return {"dataset_ids": ids}
+
+def get_datasets(pagination: DatasetPagination):
+    cursor = datasets_col\
+        .find({"_id": {"$gte": pagination.begin_index}})\
+            .sort("_id", 1)\
+                .limit(pagination.index_gap)
+    return [{"tar_name": c["tar_name"], "dataset_name": c["dataset_name"]} for c in cursor]
 
 def get_image_list_from_tar(tar_name, dataset_name) -> list[str]:
     return datasets_col.find_one({"tar_name": tar_name, "dataset_name": dataset_name}).get("image_names")
