@@ -1,11 +1,12 @@
 import os
 
 from flask.json import jsonify
-from flask import Flask, render_template
-from flask import request
+from flask import Flask
+from flask import redirect
 from flasgger import Swagger
 
 from proj_stat.controllers.main_controller import datasets
+from proj_stat.controllers.page_controller import pages
 from proj_stat.swagger.swagger import swagger_config
 
 """
@@ -34,12 +35,13 @@ def create_app():
     )
 
     app.register_blueprint(datasets)
+    app.register_blueprint(pages)
+
     Swagger(app, config=swagger_config, template_file="./swagger/swagger.yaml")
 
-    @app.get("/index")
+    @app.get("/")
     def index():
-        page = request.args.get("page", 0)
-        return render_template("index.html", page=page)
+        return redirect("/pages/subsets", code=302)
 
     @app.errorhandler(404)
     def handle_404(e):

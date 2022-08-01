@@ -33,7 +33,16 @@ class DatasetPagination:
     @classmethod
     def update(cls):
         cls.index_list = [ obj.get("_id") for e, obj in enumerate(datasets_col.find({}, {"_id": 1}).sort("_id", 1)) if e % 10 == 0 ]
-        page_count = len(cls.index_list)
+        cls.page_count = len(cls.index_list)
+
+class ImageListPagination:
+    index_gap = 20
+
+    def __init__(self, tar_name: str, dataset_name: str, page: int):
+        self.page = page
+        name_list = datasets_col.find_one({"tar_name": tar_name, "dataset_name": dataset_name}).get("image_names")
+        self.page_count = len(name_list) // self.index_gap
+
 
 def get_all_datasets_count() -> int:
     return datasets_col.count_documents({})
@@ -49,29 +58,13 @@ def get_datasets(pagination: DatasetPagination):
                 .limit(pagination.index_gap)
     return [{"tar_name": c["tar_name"], "dataset_name": c["dataset_name"]} for c in cursor]
 
-def get_image_list_from_tar(tar_name, dataset_name) -> list[str]:
+def get_image_list(tar_name, dataset_name) -> list[str]:
     return datasets_col.find_one({"tar_name": tar_name, "dataset_name": dataset_name}).get("image_names")
 
 def get_image_from_tar(tar_name, image_name) -> io.BytesIO:
     annot = annotations_col.find_one({"tar_name": tar_name, "image_name": image_name})
     with tarfile.open(os.path.join(config.TAR_SOURCE, annot.get("tar_path")), 'r') as tar:
         return io.BytesIO(tar.extractfile(annot.get("image_path")).read())
-
-
-def get_images_from_tar():
-    pass
-
-def get_image_stat(dataset_id: str, image_id: str, queries: set[str]):
-    """
-    maybe have to change mongodb annotations schema as:
-        annotation: [{"image_id": "..", "image_path" ...}, {"iamge_id": "..", }]
-        -----> to dict
-        annotation: {"test_image_id_1234": {"image_path": ...}, "test_image_id_4321": {"iamge_id": "..", }}
-    """
-    stat = dict()
-
-    result = datasets_col.find_one({"dataset_id": dataset_id}).get("annotations")
-    return stat
 
 def get_stats(tar_name: str, dataset_name: str, queries: set[str]) -> dict:
     stat = dict()

@@ -40,6 +40,7 @@ def test_database_update():
 
 def test_pagination_class():
     pagination = main_service.DatasetPagination(0)
+    pagination.update()
 
     datasets_col = mongo_db.get_datasets_col()
     cursor = datasets_col\

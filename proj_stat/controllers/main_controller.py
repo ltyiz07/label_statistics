@@ -11,6 +11,7 @@ from flask.json import jsonify
 
 from proj_stat.services import init_service, main_service
 
+
 datasets = Blueprint("datasets", __name__, url_prefix="/datasets")
 datasets.route("/")
 
@@ -45,7 +46,13 @@ def get_image_list(dataset_id):
         Challenge
     """
     tar_name, dataset_name = dataset_id.split(":")
-    return jsonify({"result": main_service.get_image_list_from_tar(tar_name, dataset_name)})
+    return jsonify({"result": main_service.get_image_list(tar_name, dataset_name)})
+
+
+@datasets.route("/search/order", methods=["GET"])
+def get_image_list_with_order():
+    object_list = list(request.args.get("objects", "").split(","))
+    
 
 
 @datasets.route("/<string:dataset_id>/images/<string:image_name>", methods=["GET"])

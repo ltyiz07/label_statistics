@@ -34,7 +34,7 @@ def upload_database():
                     if get_dirname(member.name) == "JPEGImages":
                         img_names[get_id(member.name)] = member.name
 
-            # Add annotation
+            # Add annotation #####
             for image_name in img_names.keys():
                 parsed = xmltodict.parse(tar.extractfile(xml_names.get(image_name)).read())
                 annot = Annotation({
@@ -44,11 +44,12 @@ def upload_database():
                     "image_name": image_name,
                     "size": (parsed["annotation"]["size"]["width"], parsed["annotation"]["size"]["height"]),
                     "objects": parsed["annotation"]["object"],
+                    "object_count": _get_object_count(parsed["annotation"]["object"]),
                     "edited_date": datetime.datetime.now(),
                 })
                 # Insert to database
                 annotation_col.insert_one(annot.__dict__)
-            # Add dataset
+            # Add dataset #####
             for dataset_path in dataset_paths:
                 image_name_list = [ l.decode().strip() for l in tar.extractfile(dataset_path).readlines() if len(l.strip()) > 3 ]
                 dataset_hash = str(hash(tar.gettarinfo(xml_names.get(file_id)).chksum for file_id in image_name_list))
@@ -80,3 +81,11 @@ def get_tarfiles(source_dir=config.TAR_SOURCE):
     """
     source_dir = os.path.join(source_dir, "*.tar")
     return glob.glob(source_dir)
+
+
+def _get_object_count(objects):
+    obj_count = dict()
+    for obj in objects:
+        obj_name = obj["name"]
+        obj_count[obj_name] = obj_count.get(obj_name, 0) + 1
+    return obj_count

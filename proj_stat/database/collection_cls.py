@@ -36,6 +36,7 @@ class Annotation(dict):
         self.size: tuple[int] = mapper.get("size")       # width, height
 
         self.objects: list[TypedDict("Object", {"name": str, "bndbox": dict})] = mapper.get("objects")     # keys: {"name", "bndbox"}
+        self.object_count: dict[str, int] = mapper.get("object_count")
         self.edited_date: datetime.datetime = mapper.get("edited_date")
 
     def update(self, *vargs, **kwargs):

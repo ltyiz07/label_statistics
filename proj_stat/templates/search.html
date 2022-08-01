@@ -62,24 +62,14 @@
 </style>
 <body>
 <div class="container">
-    <div class="right" id="right_aside" hidden>
-        Stats
-        <div id="piechart" style="width: 500px; height: 500px;"></div>
-        <canvas id="image_canvas"></canvas>
-        <div id="piechart_2" style="width: 500px; height: 500px;"></div>
-        <div id="image_stat"></div>
+    <div class="right">
+        Image
     </div>
     <div class="left">
-        <div>
-            Datasets list
-            <div class="pagination" id="dataset_pagination"></div>
-            <ol id="dataset_id_list" type="1"></ol>
-            <a href="/pages/search">hello</a>
-        </div>
+        Search
     </div>
     <div class="center">
         Images list
-        <div class="pagination" id="images_pagination"></div>
         <ol id="images_list" style="width: 100%;"></ol>
     </div>
 </div>
@@ -90,7 +80,7 @@
     let page = 0;
 
     // page entry ajax call
-    (function add_dataset_list() {
+    (function addObjectNames() {
         $.ajax({
             type: "get",
             url: "/datasets/?page={{ page }}",
@@ -167,7 +157,6 @@
         });
     }
 
-    let imageList;
     const ajaxImagesList = function (dataset_id, elem) {
         $.ajax({
             type: "get",
@@ -177,50 +166,18 @@
                 $('#images_list').html("");
                 challenge_data = data;
                 elem.css({background: "MediumSlateBlue"});
-                imageList = data.result;
-                imageList.dataset_id = dataset_id;
-                for (const image_id of imageList.slice(0, 20)) {
+                for (const image_id of data.result) {
                     let $li = $('<li>');
                     $li.css({margin: "10px", padding: "5px", background: "orange"});
                     $li.text(image_id);
                     $li.on("click", () => {loadImage(dataset_id, image_id)});
                     $('#images_list').append($li);
                 }
-
-                $("#images_pagination").html("");
-                $("#images_pagination").append($("<a>").text(0).attr({
-                    "onclick": "updateImageList(" + 0 + ")",
-                    "class": "active"
-                }));
-                for (let i = 1; i < Math.ceil(imageList.length/20); i++) {
-                    $("#images_pagination").append($("<a>").text(i).attr("onclick", "updateImageList(" + i + ")"));
-                }
             },
             error: function () {
                 alert("error");
             }
         });
-    }
-    const updateImageList = function(e) {
-        $('#images_list').html("");
-        for (const image_id of imageList.slice(20*e, 20*e+20)) {
-            let $li = $('<li>');
-            $li.css({margin: "10px", padding: "5px", background: "orange"});
-            $li.text(image_id);
-            $li.on("click", () => {loadImage(imageList.dataset_id, image_id)});
-            $('#images_list').append($li);
-        }
-        $("#images_pagination").html("");
-        for (let i = 0; i < Math.ceil(imageList.length/20); i++) {
-            if (i == e) {
-                $("#images_pagination").append($("<a>").text(i).attr({
-                    "onclick": "updateImageList(" + i + ")",
-                    "class": "active"
-                }));
-            } else {
-                $("#images_pagination").append($("<a>").text(i).attr("onclick", "updateImageList(" + i + ")"));
-            }
-        }
     }
     const loadImage = function(dataset_id, image_id) {
         const img = new Image();

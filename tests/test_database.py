@@ -53,10 +53,10 @@ def test_col_datasets_validation():
     sample_dataset =  Dataset({"tar_path": "test_filename.tar"})
     sample_annotation_1 = Annotation({"tar_path": "test_filename.tar"})
     sample_annotation_2 = Annotation({"tar_path": "test_filename.tar"})
-    datasets_col.insert_one(sample_dataset)
+    datasets_col.insert_one(sample_dataset.__dict__)
     # annotations_col.insert_many([sample_annotation_1, sample_annotation_2])
-    annotations_col.insert_one(sample_annotation_1)
-    annotations_col.insert_one(sample_annotation_2)
+    annotations_col.insert_one(sample_annotation_1.__dict__)
+    annotations_col.insert_one(sample_annotation_2.__dict__)
     log.debug("All good.")
 
 def test_get_as_py_class():
