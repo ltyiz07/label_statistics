@@ -24,7 +24,7 @@ class DatasetPagination:
     page_count = len(index_list)
 
     def __init__(self, page:int=0):
-        self.page = page
+        self.page = int(page)
 
     @property
     def begin_index(self):
@@ -136,6 +136,14 @@ def get_stat(tar_name: str, image_name: str, queries: set[str]) -> dict:
 
     return stat
 
+
+def get_object_count_all():
+    ""
+    cursor = annotations_col.find({}, {"_id": False})
+    result = dict()
+    for annot in cursor:
+        for k, v in annot.get("object_count").items():
+            print(k, v)
 
 ########################################################################################
 def _get_object_size(bnd_box: map):

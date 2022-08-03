@@ -83,7 +83,7 @@
     (function addObjectNames() {
         $.ajax({
             type: "get",
-            url: "/datasets/?page={{ page }}",
+            url: "/search",
             contentType: "application/x-www-form-urlencoded; charset=utf-8", // request type
             dataType: "JSON",        // response type
             success: function (data) {

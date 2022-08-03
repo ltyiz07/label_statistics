@@ -6,6 +6,7 @@ from flask import redirect
 from flasgger import Swagger
 
 from proj_stat.controllers.main_controller import datasets
+from proj_stat.controllers.search_controller import search
 from proj_stat.controllers.page_controller import pages
 from proj_stat.swagger.swagger import swagger_config
 
@@ -35,6 +36,7 @@ def create_app():
     )
 
     app.register_blueprint(datasets)
+    app.register_blueprint(search)
     app.register_blueprint(pages)
 
     Swagger(app, config=swagger_config, template_file="./swagger/swagger.yaml")

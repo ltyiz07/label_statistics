@@ -27,6 +27,7 @@ def get_datasets():
         return jsonify({"result": main_service.get_all_datasets_count()})
 
     page = request.args.get("page", 0)
+    page = 0 if page == "" else page
     pagination = main_service.DatasetPagination(page)
     pagination_obj = {
         "page": pagination.page,
@@ -47,12 +48,6 @@ def get_image_list(dataset_id):
     """
     tar_name, dataset_name = dataset_id.split(":")
     return jsonify({"result": main_service.get_image_list(tar_name, dataset_name)})
-
-
-@datasets.route("/search/order", methods=["GET"])
-def get_image_list_with_order():
-    object_list = list(request.args.get("objects", "").split(","))
-    
 
 
 @datasets.route("/<string:dataset_id>/images/<string:image_name>", methods=["GET"])
@@ -99,6 +94,18 @@ def get_stat(dataset_id, image_name):
     queries_set = set(request.args.get("queries", "").split(","))
     queries_set = list(map(lambda x: x.lower().strip(), queries_set))
     return jsonify({"result": main_service.get_stat(tar_name, image_name, queries_set)})
+
+
+@datasets.route("/search/images", methods=["POST"])
+def get_object_min_max_count():
+    pass
+
+
+@datasets.route("/search/images", methods=["POST"])
+def get_image_list_with_order():
+    # https://stackoverflow.com/questions/20001229/how-to-get-posted-json-in-flask
+    object_list = list(request.args.get("objects", "").split(","))
+    
 
 @datasets.route("/updateAll", methods=["GET"])
 def update_datasets():
