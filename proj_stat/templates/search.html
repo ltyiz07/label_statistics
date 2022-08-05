@@ -5,8 +5,15 @@
     <title>My test page</title>
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;500&display=swap" rel="stylesheet">
 </head>
 <style>
+    body {
+        font-family: 'Source Code Pro', monospace;
+        font-weight: 500;
+    }
     div {
         border: 0 solid;
     }
@@ -22,8 +29,9 @@
     .left {
         display: flex;
         float: left;
+        flex-direction: column;
         position: relative;
-        width: 20%;
+        width: 25%;
         padding: 0;
         margin: 0;
     }
@@ -67,6 +75,8 @@
     </div>
     <div class="left">
         Search
+        <ul id="dataset_id_list" type="1"></ul>
+        <a href="/pages/subsets">Subsets</a>
     </div>
     <div class="center">
         Images list
@@ -83,29 +93,20 @@
     (function addObjectNames() {
         $.ajax({
             type: "get",
-            url: "/search",
+            url: "/search/objects",
             contentType: "application/x-www-form-urlencoded; charset=utf-8", // request type
             dataType: "JSON",        // response type
             success: function (data) {
-                for (const dataset_prop of data.result) {
+                for (const [obj_name, count] of Object.entries(data.result).sort()) {
                     let $li = $('<li>')
                     $li.css({margin: "10px", padding: "5px", background: "lightblue"})
-                    $li.text(dataset_prop["tar_name"] + ":" + dataset_prop["dataset_name"]);
+                    let formatted = obj_name
+                        + "&nbsp;".repeat(20 - obj_name.length)
+                        + "max: "
+                        + count;
+                    $li.html(formatted);
                     $li.on("click", ()=>{ load_dataset(dataset_prop["tar_name"] + ":" + dataset_prop["dataset_name"], $li); });
                     $('#dataset_id_list').append($li);
-                }
-                // create pagination links
-                for (let i = 0; i < data.pagination.page_count; i++) {
-
-                    if (i.toString() === "{{ page }}") {
-                        $("#dataset_pagination").append($("<a>").text(i).attr({
-                            "href": "/pages/subsets?page=" + i.toString(),
-                            "class": "active"
-                        }));
-                    } else {
-                        $("#dataset_pagination").append($("<a>").text(i).attr("href", "/pages/subsets?page=" + i.toString()));
-                    }
-
                 }
             },
             error: function () {

@@ -17,7 +17,7 @@ search.route("/")
 
 
 @search.route("/objects", methods=["GET", "POST"])
-def get_object_with_min_max_count():
+def get_object_with_max_count():
     if request.method == "GET":
         """Response unique objects with its min-max count
         """

@@ -138,12 +138,15 @@ def get_stat(tar_name: str, image_name: str, queries: set[str]) -> dict:
 
 
 def get_object_count_all():
-    ""
+    """Returns min - max object counts at single image
+    """
     cursor = annotations_col.find({}, {"_id": False})
-    result = dict()
+    objects_counter = dict()
     for annot in cursor:
         for k, v in annot.get("object_count").items():
-            print(k, v)
+            objects_counter[k] = v if objects_counter.get(k, 0) < v else objects_counter[k]
+    return objects_counter
+
 
 ########################################################################################
 def _get_object_size(bnd_box: map):
