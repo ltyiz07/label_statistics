@@ -31,9 +31,12 @@
         float: left;
         flex-direction: column;
         position: relative;
-        width: 25%;
+        width: 22%;
         padding: 0;
         margin: 0;
+    }
+    .left > ol {
+        background-color: aquamarine;
     }
     .center {
         display: flex;
@@ -75,7 +78,8 @@
     </div>
     <div class="left">
         Search
-        <ul id="dataset_id_list" type="1"></ul>
+        <ul id="objects_list" type="1"></ul>
+        <ol id="objects_stack" type="1"></ol>
         <a href="/pages/subsets">Subsets</a>
     </div>
     <div class="center">
@@ -105,8 +109,9 @@
                         + "max: "
                         + count;
                     $li.html(formatted);
-                    $li.on("click", ()=>{ load_dataset(dataset_prop["tar_name"] + ":" + dataset_prop["dataset_name"], $li); });
-                    $('#dataset_id_list').append($li);
+                    $li.attr("object_name", obj_name);
+                    $li.on("click", ()=>{ add_to_stack(obj_name, $li); });
+                    $('#objects_list').append($li);
                 }
             },
             error: function () {
@@ -115,22 +120,25 @@
         });
     })();
 
-    const load_dataset = function (dataset_id, elem) {
-        $('#dataset_id_list').children().css("background-color", "lightblue");
-        $('#right_aside').attr("hidden", false);
-        clearDataset();
-        ajaxImagesList(dataset_id, elem);
-        ajaxImagesStats(dataset_id);
+    const add_to_stack = function (dataset_id, elem) {
+        $('#objects_list').children().css("background-color", "lightblue");
+        let $stacked_elem = $(elem).clone();
+
+        $stacked_elem.on("click", (event)=>{
+            $(elem).attr("hidden", false);
+            event.target.remove();
+            updateObjectStack();
+        });
+
+        $('#objects_stack').append($stacked_elem);
+        $(elem).attr("hidden", true);
+        updateObjectStack();
     }
 
-    const clearDataset = function () {
-        document.getElementById("piechart").innerHTML = "";
-
-        const canvas = document.getElementById("image_canvas");
-        ctx = canvas.getContext("2d");
-        ctx.clearRect(0, 0, canvas.width, canvas.height)
-
-        document.getElementById("piechart_2").innerHTML = "";
+    const updateObjectStack = function () {
+        $('#images_list').html("");
+        const objStack = [...document.getElementById("objects_stack").children].map(li_elem => $(li_elem).attr("object_name"));
+        ajaxImagesList(objStack);
     }
 
     const ajaxImagesStats = function (dataset_id) {
@@ -158,22 +166,25 @@
         });
     }
 
-    const ajaxImagesList = function (dataset_id, elem) {
+    const ajaxImagesList = function (objects_list) {
         $.ajax({
-            type: "get",
-            url: "/datasets/" + dataset_id + "/images",
-            dataType: "JSON",        // response type
+            type: "post",
+            url: "/search/objects",
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify({"objects_list": objects_list}),
+            dataType: "json",        // response type
             success: function (data) {
-                $('#images_list').html("");
-                challenge_data = data;
-                elem.css({background: "MediumSlateBlue"});
-                for (const image_id of data.result) {
-                    let $li = $('<li>');
-                    $li.css({margin: "10px", padding: "5px", background: "orange"});
-                    $li.text(image_id);
-                    $li.on("click", () => {loadImage(dataset_id, image_id)});
-                    $('#images_list').append($li);
-                }
+                console.log(data);
+                // $('#images_list').html("");
+                // challenge_data = data;
+                // elem.css({background: "MediumSlateBlue"});
+                // for (const image_id of data.result) {
+                //     let $li = $('<li>');
+                //     $li.css({margin: "10px", padding: "5px", background: "orange"});
+                //     $li.text(image_id);
+                //     $li.on("click", () => {loadImage(dataset_id, image_id)});
+                //     $('#images_list').append($li);
+                // }
             },
             error: function () {
                 alert("error");

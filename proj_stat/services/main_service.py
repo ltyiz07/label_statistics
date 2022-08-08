@@ -147,6 +147,9 @@ def get_object_count_all():
             objects_counter[k] = v if objects_counter.get(k, 0) < v else objects_counter[k]
     return objects_counter
 
+def get_images_with_objects(objects_list):
+    return {"test_result": objects_list}
+
 
 ########################################################################################
 def _get_object_size(bnd_box: map):

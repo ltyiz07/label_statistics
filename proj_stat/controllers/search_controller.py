@@ -17,15 +17,16 @@ search.route("/")
 
 
 @search.route("/objects", methods=["GET", "POST"])
-def get_object_with_max_count():
+def get_objects_count():
     if request.method == "GET":
         """Response unique objects with its min-max count
         """
-        return jsonify({"result": main_service.get_object_count_all()})
+        return jsonify({"result": main_service.get_object_count_all()}), 200
 
     elif request.method == "POST":
         # https://stackoverflow.com/questions/20001229/how-to-get-posted-json-in-flask
         # get JSON type data with object_name and min, max count
         """Response image list with its best fits orders
         """
-        pass
+        objs_list = request.json.get("objects_list")
+        return jsonify({"result": main_service.get_images_with_objects(objs_list)}), 201
