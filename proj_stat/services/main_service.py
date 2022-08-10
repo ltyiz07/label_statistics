@@ -148,7 +148,11 @@ def get_object_count_all():
     return objects_counter
 
 def get_images_with_objects(objects_list):
-    return {"test_result": objects_list}
+    search_target = "object_count."
+    search_query = {search_target + obj : {"$exists": True} for obj in objects_list}
+    sort_query = [(search_target + obj, -1) for obj in objects_list]
+    cursor = annotations_col.find(search_query, {"tar_name": 1, "image_name": 1}).sort(sort_query)
+    return [ {"tar_name": c.get("tar_name"), "image_name": c.get("image_name")} for c in cursor]
 
 
 ########################################################################################

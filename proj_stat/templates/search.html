@@ -124,6 +124,7 @@
     </div>
     <div class="center">
         Images list
+        <div class="pagination" id="images_pagination"></div>
         <ol id="images_list" style="width: 100%;"></ol>
     </div>
 </div>
@@ -178,7 +179,12 @@
     const updateObjectStack = function () {
         $('#images_list').html("");
         const objStack = [...document.getElementById("objects_stack").children].map(li_elem => $(li_elem).attr("object_name"));
-        ajaxImagesList(objStack);
+        if (objStack.length > 0) {
+            // objStack is not empty
+            ajaxImagesList(objStack);
+        } else {
+            // objstack is empty => clear imagesList
+        }
     }
 
     const ajaxImagesStats = function (dataset_id) {
@@ -215,22 +221,55 @@
             dataType: "json",        // response type
             success: function (data) {
                 console.log(data);
-                // $('#images_list').html("");
-                // challenge_data = data;
+                $('#images_list').html("");
                 // elem.css({background: "MediumSlateBlue"});
-                // for (const image_id of data.result) {
-                //     let $li = $('<li>');
-                //     $li.css({margin: "10px", padding: "5px", background: "orange"});
-                //     $li.text(image_id);
-                //     $li.on("click", () => {loadImage(dataset_id, image_id)});
-                //     $('#images_list').append($li);
-                // }
+                imageList = data.result;
+                for (const img_info of imageList.slice(0, 20)) {
+                    let $li = $('<li>');
+                    $li.css({margin: "10px", padding: "5px", background: "orange"});
+                    $li.text(img_info["image_name"]);
+                    // $li.on("click", () => {loadImage(dataset_id, image_id)});
+                    $('#images_list').append($li);
+                }
+
+                $("#images_pagination").html("");
+                $("#images_pagination").append($("<a>").text(0).attr({
+                    "onclick": "updateImageList(" + 0 + ")",
+                    "class": "active"
+                }));
+                for (let i = 1; i < Math.ceil(imageList.length/20); i++) {
+                    $("#images_pagination").append($("<a>").text(i).attr("onclick", "updateImageList(" + i + ")"));
+                }
             },
             error: function () {
                 alert("error");
             }
         });
     }
+    const updateImageList = function(e) {
+        // pagination method
+        // TODO : list numbering should match with pagination 0, 20, 40...
+        $('#images_list').html("");
+        for (const img_info of imageList.slice(20*e, 20*e+20)) {
+            let $li = $('<li>');
+            $li.css({margin: "10px", padding: "5px", background: "orange"});
+            $li.text(img_info["image_name"]);
+            $li.on("click", () => {loadImage(imageList.dataset_id, img_info)});
+            $('#images_list').append($li);
+        }
+        $("#images_pagination").html("");
+        for (let i = 0; i < Math.ceil(imageList.length/20); i++) {
+            if (i == e) {
+                $("#images_pagination").append($("<a>").text(i).attr({
+                    "onclick": "updateImageList(" + i + ")",
+                    "class": "active"
+                }));
+            } else {
+                $("#images_pagination").append($("<a>").text(i).attr("onclick", "updateImageList(" + i + ")"));
+            }
+        }
+    }
+
     const loadImage = function(dataset_id, image_id) {
         const img = new Image();
         const ctx = document.getElementById("image_canvas").getContext("2d");
