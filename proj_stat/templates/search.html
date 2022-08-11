@@ -110,6 +110,8 @@
 <div class="container">
     <div class="right">
         Image
+        <canvas id="image_canvas"></canvas>
+        <div id="piechart_2" style="width: 500px; height: 500px;"></div>
     </div>
     <div class="left">
         <div class="tooltip">
@@ -179,6 +181,7 @@
     const updateObjectStack = function () {
         $('#images_list').html("");
         const objStack = [...document.getElementById("objects_stack").children].map(li_elem => $(li_elem).attr("object_name"));
+        clearImage();
         if (objStack.length > 0) {
             // objStack is not empty
             ajaxImagesList(objStack);
@@ -187,29 +190,11 @@
         }
     }
 
-    const ajaxImagesStats = function (dataset_id) {
-        google.charts.load('current', {'packages':['corechart']});
-        // google.charts.setOnLoadCallback(drawChart);
-        $.ajax({
-            type: "get",
-            url: "/datasets/" + dataset_id + "/stats?queries=images%2Cobjects",
-            dataType: "JSON",        // response type
-            success: function (data) {
-                const data_list = [["object", "count"]]
-                for (const [k, v] of Object.entries(data.result.objects).sort()) {
-                    data_list.push([k, v]);
-                }
-                const graph_data = google.visualization.arrayToDataTable(data_list);
-                const options = {
-                    title: 'Objects in Dataset'
-                };
-                var chart = new google.visualization.PieChart(document.getElementById('piechart'));
-                chart.draw(graph_data, options);
-            },
-            error: function () {
-                alert("error");
-            }
-        });
+    const clearImage = function() {
+        const canvas = document.getElementById("image_canvas");
+        ctx = canvas.getContext("2d");
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
+        document.getElementById("piechart_2").innerHTML = "";
     }
 
     const ajaxImagesList = function (objects_list) {
@@ -228,7 +213,7 @@
                     let $li = $('<li>');
                     $li.css({margin: "10px", padding: "5px", background: "orange"});
                     $li.text(img_info["image_name"]);
-                    // $li.on("click", () => {loadImage(dataset_id, image_id)});
+                    $li.on("click", () => {loadImage(img_info["tar_name"], img_info["image_name"])});
                     $('#images_list').append($li);
                 }
 
@@ -254,7 +239,7 @@
             let $li = $('<li>');
             $li.css({margin: "10px", padding: "5px", background: "orange"});
             $li.text(img_info["image_name"]);
-            $li.on("click", () => {loadImage(imageList.dataset_id, img_info)});
+            $li.on("click", () => {loadImage(img_info["tar_name"], img_info["image_name"])});
             $('#images_list').append($li);
         }
         $("#images_pagination").html("");
@@ -284,16 +269,14 @@
             ctx.canvas.width = img.naturalWidth * image_ratio;
             ctx.canvas.height = img.naturalHeight * image_ratio;
 
-            // ctx.drawImage(img, 0, 0);
-            // ctx.drawImage(img, 0, 0, img.width, img.height);
             ctx.drawImage(img, 0, 0, img.width, img.height, 0, 0, ctx.canvas.width, ctx.canvas.height);
-            // ctx.drawImage(img, 0, 0, img.width, img.height, 0, 0, 192, 120);
             ajaxImageStat(dataset_id, image_id, ctx, image_ratio);
         }, false);
         const url = "/datasets/" + dataset_id + "/images/" + image_id;
         img.src = url;
     }
     const ajaxImageStat = function(dataset_id, image_id, ctx, image_ratio) {
+        google.charts.load('current', {'packages':['corechart']});
         $.ajax({
             type: "get",
             url: "/datasets/" + dataset_id + "/stats/" + image_id,

@@ -59,7 +59,10 @@ def get_image(dataset_id: str, image_name: str):
     Returns:
         SubmissionInfo
     """
-    tar_name, dataset_name = dataset_id.split(":")
+    if ":" in dataset_id:
+        tar_name, dataset_name = dataset_id.split(":")
+    else:
+        tar_name = dataset_id
     return send_file(main_service.get_image_from_tar(tar_name, image_name), mimetype="image/jpeg")
     # return f"call get_image with, dataset_id: {dataset_id}, image_id: {image_id}"
 
@@ -90,7 +93,10 @@ def get_stat(dataset_id, image_name):
         response (dict): submission status and results
     """
     # return f"call get_stat with, dataset_id: {dataset_id}, image_id: {image_id}"
-    tar_name, dataset_name = dataset_id.split(":")
+    if ":" in dataset_id:
+        tar_name, dataset_name = dataset_id.split(":")
+    else:
+        tar_name = dataset_id
     queries_set = set(request.args.get("queries", "").split(","))
     queries_set = list(map(lambda x: x.lower().strip(), queries_set))
     return jsonify({"result": main_service.get_stat(tar_name, image_name, queries_set)})
