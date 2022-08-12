@@ -16,13 +16,17 @@ Python version >= 3.9
 
 To run the server, please execute the following from the project root directory:  
 
+set TAR_SOURCE at .\proj_stat\config.py as path where *.tar files located.  
+
 ```pwsh
-docker run -dp 27017:27017 -v C:\pyth\db_statistics\database:/data/db --name mongodb mongo
+docker run -dp 27017:27017 -v ./database:/data/db --name mongodb mongo
 python -m pip3 install -r requirements.txt
 python -m flask run
 ```
 
-[web page](http://localhost:5000/index)
+실행후 아래 페이지에서 "Update Database" 링크 클릭  
+[web page](http://localhost:5000)  
+[Notion info](https://road-bit-136.notion.site/5337e546b32a4c98aa5a4420ea817e11)
 
 ## Test
 
@@ -35,16 +39,6 @@ python -m pytest
 ## Swagger document
 
 [swagger api document](http://localhost:5000/)  
-
-## Running with Docker
-
-To run the server on a Docker container, please execute the following from the root directory:
-
-```pwsh
-# starting up a container
-docker-compose up
-```
-
 
 ## resolve
 
